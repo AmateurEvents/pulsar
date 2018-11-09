@@ -1,0 +1,16 @@
+# client 配置
+zkServers:127.0.0.1:2181
+# 5 * 1024
+batchSize:5120
+debug:false
+destination:example
+username:canal
+password:canal
+exceptionstrategy:1
+retrytimes:3
+filter:.*\\..*
+
+# 同步目标: mysql 配置
+target.mysql.url:jdbc:mysql://127.0.0.1:4306
+target.mysql.username:root
+target.mysql.password:123456
