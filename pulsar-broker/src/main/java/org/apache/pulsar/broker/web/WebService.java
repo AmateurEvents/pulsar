@@ -126,7 +126,13 @@ public class WebService implements AutoCloseable {
     public void addServlet(String path, ServletHolder servletHolder, boolean requiresAuthentication, Map<String,Object> attributeMap) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath(path);
-        context.addServlet(servletHolder, MATCH_ALL);
+        if (path.equals("/metrics")) {
+            context.setContextPath("/");
+            context.addServlet(servletHolder, "/metrics");
+        } else {
+            context.setContextPath(path);
+            context.addServlet(servletHolder, MATCH_ALL);
+        }
         if (attributeMap != null) {
             attributeMap.forEach((key, value) -> {
                 context.setAttribute(key, value);

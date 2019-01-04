@@ -377,6 +377,9 @@ public class PulsarService implements AutoCloseable {
                     return state == State.Started;
                 }
             });
+            this.webService.addServlet("/metrics",
+                    new ServletHolder(new PrometheusMetricsServlet(this, config.isExposeTopicLevelMetricsInPrometheus(), config.isExposeConsumerLevelMetricsInPrometheus())),
+                    false, attributeMap);
             this.webService.addRestResources("/", VipStatus.class.getPackage().getName(), false, vipAttributeMap);
             this.webService.addRestResources("/", "org.apache.pulsar.broker.web", false, attributeMap);
             this.webService.addRestResources("/admin", "org.apache.pulsar.broker.admin.v1", true, attributeMap);
@@ -384,9 +387,9 @@ public class PulsarService implements AutoCloseable {
             this.webService.addRestResources("/admin/v3", "org.apache.pulsar.broker.admin.v3", true, attributeMap);
             this.webService.addRestResources("/lookup", "org.apache.pulsar.broker.lookup", true, attributeMap);
 
-            this.webService.addServlet("/metrics",
-                    new ServletHolder(new PrometheusMetricsServlet(this, config.isExposeTopicLevelMetricsInPrometheus(), config.isExposeConsumerLevelMetricsInPrometheus())),
-                    false, attributeMap);
+//            this.webService.addServlet("/metrics",
+//                    new ServletHolder(new PrometheusMetricsServlet(this, config.isExposeTopicLevelMetricsInPrometheus(), config.isExposeConsumerLevelMetricsInPrometheus())),
+//                    false, attributeMap);
 
             if (config.isWebSocketServiceEnabled()) {
                 // Use local broker address to avoid different IP address when using a VIP for service discovery
