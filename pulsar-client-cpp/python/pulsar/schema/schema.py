@@ -102,3 +102,17 @@ class AvroSchema(Schema):
         buffer = io.BytesIO(data)
         d = fastavro.schemaless_reader(buffer, self._schema)
         return self._record_cls(**d)
+
+
+class ProtobufSchema(Schema):
+    def __init__(self, record_cls):
+            super(ProtobufSchema, self).__init__(record_cls, _pulsar.SchemaType.PROTOBUF,
+                                             record_cls.schema(), 'PROTOBUF')
+            self._schema = record_cls.schema()
+
+
+class KeyValueSchema(Schema):
+    def __init__(self, record_cls):
+            super(KeyValueSchema, self).__init__(record_cls, _pulsar.SchemaType.KEY_VALUE,
+                                             record_cls.schema(), 'KEY_VALUE')
+            self._schema = record_cls.schema()
