@@ -104,15 +104,23 @@ class AvroSchema(Schema):
         return self._record_cls(**d)
 
 
-class ProtobufSchema(Schema):
-    def __init__(self, record_cls):
-            super(ProtobufSchema, self).__init__(record_cls, _pulsar.SchemaType.PROTOBUF,
-                                             record_cls.schema(), 'PROTOBUF')
-            self._schema = record_cls.schema()
-
-
 class KeyValueSchema(Schema):
-    def __init__(self, record_cls):
-            super(KeyValueSchema, self).__init__(record_cls, _pulsar.SchemaType.KEY_VALUE,
-                                             record_cls.schema(), 'KEY_VALUE')
-            self._schema = record_cls.schema()
+    def __init__(self, key_record_cls, value_record_cls):
+        super(KeyValueSchema, self).__init__(key_record_cls, _pulsar.SchemaType.KEY_VALUE,
+                                            None, 'KEY_VALUE')
+        self._key_schema = key_record_cls.schema()
+        self._value_schema = value_record_cls.schema()
+
+    def encode(self, obj):
+        buffer = io.BytesIO()
+        buffer.write(len(obj.key) + obj.key.encode(encoding='utf-8') + len(obj.value) + obj.value.encode('utf-8'))
+        return buffer
+
+    def decode(self, data):
+        buffer = io.BytesIO(data)
+        message = buffer.getvalue()
+        message_key_length = message[0:4]
+        message_key_value = message[4:message_key_length]
+        message_value_length = message[4 + message_key_length: 4 + message_key_length + 4]
+        message_value = message[4 + message_key_length + 4: 4 + message_key_length + 4 + message_value_length]
+        return self._record_cls(**{'key': message_key_value, 'value': message_value })

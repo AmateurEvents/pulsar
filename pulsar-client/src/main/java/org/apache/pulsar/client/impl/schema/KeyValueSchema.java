@@ -21,7 +21,11 @@ package org.apache.pulsar.client.impl.schema;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.Getter;
 
 import org.apache.pulsar.client.api.Schema;
@@ -72,17 +76,39 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
         this.keySchema = keySchema;
         this.valueSchema = valueSchema;
 
+
         // set schemaInfo
         this.schemaInfo = new SchemaInfo()
             .setName("KeyValue")
             .setType(SchemaType.KEY_VALUE);
 
+        Map<String, String> map = new HashMap<>();
+        map.put("xxxxxx", "ddddd");
+        keySchema.getSchemaInfo().setProperties(map);
         byte[] keySchemaInfo = keySchema.getSchemaInfo().getSchema();
+        byte[] keySchemaName = keySchema.getSchemaInfo().getName().getBytes();
+        byte[] keySchemaType = String.valueOf(keySchema.getSchemaInfo().getType().getValue()).getBytes();
+        Gson keySchemaGson = new Gson();
+        byte[] keySchemaProperties = keySchemaGson.toJson(keySchema.getSchemaInfo().getProperties()).getBytes();
         byte[] valueSchemaInfo = valueSchema.getSchemaInfo().getSchema();
+        byte[] valueSchemaName = valueSchema.getSchemaInfo().getName().getBytes();
+        byte[] valueSchemaType = String.valueOf(valueSchema.getSchemaInfo().getType().getValue()).getBytes();
+        Gson valueSchemaGson = new Gson();
+        byte[] valueSchemaProperties = valueSchemaGson.toJson(valueSchema.getSchemaInfo().getProperties()).getBytes();
+        valueSchemaGson.fromJson(new String(valueSchemaProperties), Map.class);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4 + keySchemaInfo.length + 4 + valueSchemaInfo.length);
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(
+                4 + keySchemaInfo.length + 4 + keySchemaName.length + 4 + keySchemaType.length + 4 + keySchemaProperties.length
+                        + 4 + valueSchemaInfo.length + 4 + valueSchemaName.length + 4 + valueSchemaType.length + 4 + valueSchemaProperties.length);
         byteBuffer.putInt(keySchemaInfo.length).put(keySchemaInfo)
-            .putInt(valueSchemaInfo.length).put(valueSchemaInfo);
+                .putInt(keySchemaName.length).put(keySchemaName)
+                .putInt(keySchemaType.length).put(keySchemaType)
+                .putInt(keySchemaProperties.length).put(keySchemaProperties)
+                .putInt(valueSchemaInfo.length).put(valueSchemaInfo)
+                .putInt(valueSchemaName.length).put(valueSchemaName)
+                .putInt(valueSchemaType.length).put(valueSchemaType)
+                .putInt(valueSchemaProperties.length).put(valueSchemaProperties);
         this.schemaInfo.setSchema(byteBuffer.array());
     }
 
@@ -91,7 +117,8 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
         byte [] keyBytes;
         byte [] valueBytes;
         ByteBuffer byteBuffer;
-        if (this.schemaInfo.getProperties().get("keyIsStoredToMessage").equals("true")) {
+        String keyIsStoredToMessage = this.schemaInfo.getProperties().get("keyIsStoredToMessage");
+        if (keyIsStoredToMessage != null && keyIsStoredToMessage.equals("true")) {
             keyBytes = keySchema.encode(message.getKey());
             valueBytes = valueSchema.encode(message.getValue());
             byteBuffer = ByteBuffer.allocate(4 + keyBytes.length + 4 + valueBytes.length);
@@ -109,7 +136,8 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         int keyLength;
         byte [] keyBytes = {};
-        if (this.schemaInfo.getProperties().get("keyIsStoredToMessage").equals("true")) {
+        String keyIsStoredToMessage = this.schemaInfo.getProperties().get("keyIsStoredToMessage");
+        if (keyIsStoredToMessage != null && keyIsStoredToMessage.equals("true")) {
             keyLength = byteBuffer.getInt();
             keyBytes = new byte[keyLength];
             byteBuffer.get(keyBytes);

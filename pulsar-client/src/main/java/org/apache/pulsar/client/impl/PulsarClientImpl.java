@@ -295,7 +295,7 @@ public class PulsarClientImpl implements PulsarClient {
             AutoConsumeSchema autoConsumeSchema = (AutoConsumeSchema) schema;
             return lookup.getSchema(TopicName.get(conf.getSingleTopic()))
                     .thenCompose(schemaInfoOptional -> {
-                        if (schemaInfoOptional.isPresent() && schemaInfoOptional.get().getType() == SchemaType.AVRO) {
+                        if (schemaInfoOptional.isPresent() && schemaInfoOptional.get().getType() == SchemaType.AVRO || schemaInfoOptional.isPresent() && schemaInfoOptional.get().getType() == SchemaType.KEY_VALUE) {
                             GenericSchemaImpl genericSchema = GenericSchemaImpl.of(schemaInfoOptional.get());
                             log.info("Auto detected schema for topic {} : {}",
                                 conf.getSingleTopic(), new String(schemaInfoOptional.get().getSchema(), UTF_8));
