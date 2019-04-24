@@ -21,6 +21,7 @@ package org.apache.pulsar.client.impl.schema;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,15 +77,11 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
         this.keySchema = keySchema;
         this.valueSchema = valueSchema;
 
-
         // set schemaInfo
         this.schemaInfo = new SchemaInfo()
-            .setName("KeyValue")
-            .setType(SchemaType.KEY_VALUE);
+                .setName("KeyValue")
+                .setType(SchemaType.KEY_VALUE);
 
-        Map<String, String> map = new HashMap<>();
-        map.put("xxxxxx", "ddddd");
-        keySchema.getSchemaInfo().setProperties(map);
         byte[] keySchemaInfo = keySchema.getSchemaInfo().getSchema();
         byte[] keySchemaName = keySchema.getSchemaInfo().getName().getBytes();
         byte[] keySchemaType = String.valueOf(keySchema.getSchemaInfo().getType().getValue()).getBytes();
@@ -110,9 +107,11 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
                 .putInt(valueSchemaType.length).put(valueSchemaType)
                 .putInt(valueSchemaProperties.length).put(valueSchemaProperties);
         this.schemaInfo.setSchema(byteBuffer.array());
+
     }
 
     // encode as bytes: [key.length][key.bytes][value.length][value.bytes]
+    // if keyIsStoredToMessage is true
     public byte[] encode(KeyValue<K, V> message) {
         byte [] keyBytes;
         byte [] valueBytes;
