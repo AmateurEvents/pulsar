@@ -59,6 +59,15 @@ public class SchemaBuilderTest {
         private double doubleField;
     }
 
+    private static class B {
+        String b;
+    }
+
+    private static class A {
+        String aField;
+        B bField;
+    }
+
     @Test
     public void testAllOptionalFieldsSchema() {
         RecordSchemaBuilder recordSchemaBuilder =

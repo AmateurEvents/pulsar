@@ -45,6 +45,10 @@ class AvroRecordBuilderImpl implements GenericRecordBuilder {
      */
     @Override
     public GenericRecordBuilder set(String fieldName, Object value) {
+        if (value instanceof GenericAvroRecord) {
+            GenericAvroRecord avroRecord = (GenericAvroRecord) value;
+            avroRecordBuilder.set(fieldName, avroRecord.getAvroRecord());
+        }
         avroRecordBuilder.set(fieldName, value);
         return this;
     }
