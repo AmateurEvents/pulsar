@@ -18,20 +18,26 @@
  */
 package org.apache.pulsar.client.impl.schema.generic;
 
+import org.apache.avro.Schema;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericRecordBuilder;
 import org.apache.pulsar.client.api.schema.SchemaReader;
 import org.apache.pulsar.common.schema.SchemaInfo;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * A generic avro schema.
  */
 public class GenericAvroSchema extends GenericSchemaImpl {
 
+    protected final org.apache.avro.Schema parseSchema;
+
     public GenericAvroSchema(SchemaInfo schemaInfo) {
         super(schemaInfo);
-        setReader(new GenericAvroReader(schema));
-        setWriter(new GenericAvroWriter(schema));
+        this.parseSchema = parseAvroSchema(new String(schema, UTF_8));
+        setReader(new GenericAvroReader(parseSchema));
+        setWriter(new GenericAvroWriter(parseSchema));
     }
 
     @Override
@@ -46,7 +52,7 @@ public class GenericAvroSchema extends GenericSchemaImpl {
          if (schemaInfo != null) {
              return new GenericAvroReader(
                      parseAvroSchema(new String(schemaInfo.getSchema())),
-                     schema,
+                     parseSchema,
                      schemaVersion);
          } else {
              return reader;

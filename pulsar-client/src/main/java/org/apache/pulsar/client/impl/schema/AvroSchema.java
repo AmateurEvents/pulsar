@@ -18,6 +18,8 @@
  */
 package org.apache.pulsar.client.impl.schema;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Conversions;
 import org.apache.avro.data.TimeConversions;
@@ -39,6 +41,8 @@ import java.util.Map;
 @Slf4j
 public class AvroSchema<T> extends StructSchema<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AvroSchema.class);
+
+    protected final org.apache.avro.Schema parseSchema;
 
     //      the aim to fix avro's bug
 //      https://issues.apache.org/jira/browse/AVRO-1891  bug address explain
@@ -69,8 +73,9 @@ public class AvroSchema<T> extends StructSchema<T> {
 
     private AvroSchema(SchemaInfo schemaInfo) {
         super(schemaInfo);
-        setReader(new AvroReader<>(schema));
-        setWriter(new AvroWriter<>(schema));
+        this.parseSchema = parseAvroSchema(new String(schema, UTF_8));
+        setReader(new AvroReader<>(parseSchema));
+        setWriter(new AvroWriter<>(parseSchema));
     }
 
     @Override
@@ -95,11 +100,14 @@ public class AvroSchema<T> extends StructSchema<T> {
     protected SchemaReader<T> loadReader(byte[] schemaVersion) {
         SchemaInfo schemaInfo = schemaInfoProvider.getSchemaByVersion(schemaVersion);
         if (schemaInfo != null) {
-            return new AvroReader<>(parseAvroSchema(new String(schemaInfo.getSchema())), schema);
+            return new AvroReader<>(parseAvroSchema(new String(schemaInfo.getSchema())), parseSchema);
         } else {
             return reader;
         }
     }
 
+    public org.apache.avro.Schema getAvroSchema() {
+        return parseSchema;
+    }
 
 }

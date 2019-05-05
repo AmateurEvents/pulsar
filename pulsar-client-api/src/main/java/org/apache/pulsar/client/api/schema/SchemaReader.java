@@ -27,4 +27,15 @@ public interface SchemaReader<T> {
      * @return the serialized object
      */
     T read(byte[] bytes);
+
+    /**
+     * serialize keyBytes and valueBytes convert pojo
+     *
+     * @param keyBytes the data of KeyValueSchema
+     * @param valueBytes the data of KeyValueSchema
+     * @return the serialized object
+     */
+    default T read(byte[] keyBytes, byte[] valueBytes) {
+        return null;
+    }
 }

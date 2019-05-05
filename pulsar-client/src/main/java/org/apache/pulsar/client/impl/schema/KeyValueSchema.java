@@ -29,7 +29,10 @@ import com.google.gson.Gson;
 import lombok.Getter;
 
 import org.apache.pulsar.client.api.Schema;
-import org.apache.pulsar.client.api.SchemaSerializationException;
+import org.apache.pulsar.client.api.schema.SchemaDefinition;
+import org.apache.pulsar.client.api.schema.SchemaReader;
+import org.apache.pulsar.client.impl.schema.reader.KeyValueReader;
+import org.apache.pulsar.client.impl.schema.writer.KeyValueWriter;
 import org.apache.pulsar.common.schema.KeyValue;
 import org.apache.pulsar.common.schema.KeyValueEncodingType;
 import org.apache.pulsar.common.schema.SchemaInfo;
@@ -39,16 +42,12 @@ import org.apache.pulsar.common.schema.SchemaType;
 /**
  * [Key, Value] pair schema definition
  */
-public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
+public class KeyValueSchema<K, V> extends StructSchema<KeyValue<K, V>> {
 
     @Getter
     private final Schema<K> keySchema;
     @Getter
     private final Schema<V> valueSchema;
-
-    // schemaInfo combined by KeySchemaInfo and ValueSchemaInfo:
-    //   [keyInfo.length][keyInfo][valueInfo.length][ValueInfo]
-    private final SchemaInfo schemaInfo;
 
     @Getter
     private final KeyValueEncodingType keyValueEncodingType;
@@ -59,49 +58,54 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
     public static <K, V> Schema<KeyValue<K, V>> of(Class<K> key, Class<V> value, SchemaType type) {
         checkArgument(SchemaType.JSON == type || SchemaType.AVRO == type);
         if (SchemaType.JSON == type) {
-            return new KeyValueSchema<>(JSONSchema.of(key), JSONSchema.of(value), KeyValueEncodingType.INLINE);
+            return new KeyValueSchema<>(parseKeyValueSchemaInfo(
+                    JSONSchema.of(key), JSONSchema.of(value), KeyValueEncodingType.INLINE),
+                    JSONSchema.of(key), JSONSchema.of(value), KeyValueEncodingType.INLINE);
         } else {
             // AVRO
-            return new KeyValueSchema<>(AvroSchema.of(key), AvroSchema.of(value), KeyValueEncodingType.INLINE);
+            return new KeyValueSchema<>(parseKeyValueSchemaInfo(
+                    AvroSchema.of(key), AvroSchema.of(value), KeyValueEncodingType.INLINE),
+                    AvroSchema.of(key), AvroSchema.of(value), KeyValueEncodingType.INLINE);
         }
     }
 
 
     public static <K, V> Schema<KeyValue<K, V>> of(Schema<K> keySchema, Schema<V> valueSchema) {
-        return new KeyValueSchema<>(keySchema, valueSchema, KeyValueEncodingType.INLINE);
+
+        return new KeyValueSchema<>(parseKeyValueSchemaInfo(keySchema, valueSchema, KeyValueEncodingType.INLINE),
+                keySchema, valueSchema, KeyValueEncodingType.INLINE);
     }
 
     public static <K, V> Schema<KeyValue<K, V>> of(Schema<K> keySchema,
                                                    Schema<V> valueSchema,
                                                    KeyValueEncodingType keyValueEncodingType) {
-        return new KeyValueSchema<>(keySchema, valueSchema, keyValueEncodingType);
+        return new KeyValueSchema<>(parseKeyValueSchemaInfo(keySchema, valueSchema, keyValueEncodingType),
+                keySchema, valueSchema, keyValueEncodingType);
     }
 
     private static final Schema<KeyValue<byte[], byte[]>> KV_BYTES = new KeyValueSchema<>(
-        BytesSchema.of(),
-        BytesSchema.of());
+            parseKeyValueSchemaInfo(BytesSchema.of(), BytesSchema.of(), KeyValueEncodingType.INLINE),
+            BytesSchema.of(), BytesSchema.of(), KeyValueEncodingType.INLINE);
 
     public static Schema<KeyValue<byte[], byte[]>> kvBytes() {
         return KV_BYTES;
     }
 
-
-    private KeyValueSchema(Schema<K> keySchema,
-                           Schema<V> valueSchema) {
-        this(keySchema, valueSchema, KeyValueEncodingType.INLINE);
-    }
-
-    private KeyValueSchema(Schema<K> keySchema,
-                           Schema<V> valueSchema,
-                           KeyValueEncodingType keyValueEncodingType) {
+    private KeyValueSchema(SchemaInfo schemaInfo, Schema<K> keySchema, Schema<V> valueSchema, KeyValueEncodingType keyValueEncodingType) {
+        super(schemaInfo);
         this.keySchema = keySchema;
         this.valueSchema = valueSchema;
+        this.keyValueEncodingType = keyValueEncodingType;
+        setReader(new KeyValueReader<>(keySchema, valueSchema, keyValueEncodingType));
+        setWriter(new KeyValueWriter<>(keySchema, valueSchema, keyValueEncodingType));
+    }
 
-        // set schemaInfo
-        this.schemaInfo = new SchemaInfo()
-                .setName("KeyValue")
-                .setType(SchemaType.KEY_VALUE);
+    @Override
+    public boolean supportSchemaVersioning() {
+        return true;
+    }
 
+    protected static SchemaInfo parseKeyValueSchemaInfo(Schema keySchema, Schema valueSchema, KeyValueEncodingType keyValueEncodingType) {
         byte[] keySchemaInfo = keySchema.getSchemaInfo().getSchema();
         byte[] valueSchemaInfo = valueSchema.getSchemaInfo().getSchema();
 
@@ -121,47 +125,34 @@ public class KeyValueSchema<K, V> implements Schema<KeyValue<K, V>> {
         properties.put("value.schema.properties", valueSchemaGson.toJson(valueSchema.getSchemaInfo().getProperties()));
 
         checkNotNull(keyValueEncodingType, "Null encoding type is provided");
-        this.keyValueEncodingType = keyValueEncodingType;
         properties.put("kv.encoding.type", String.valueOf(keyValueEncodingType));
 
-        this.schemaInfo.setSchema(byteBuffer.array()).setProperties(properties);
+        return SchemaInfo.builder()
+                .schema(byteBuffer.array())
+                .properties(properties)
+                .name("KeyValue")
+                .type(SchemaType.KEY_VALUE).build();
     }
 
-    // encode as bytes: [key.length][key.bytes][value.length][value.bytes] or [value.bytes]
-    public byte[] encode(KeyValue<K, V> message) {
-        if (keyValueEncodingType != null && keyValueEncodingType == KeyValueEncodingType.INLINE) {
-            byte [] keyBytes = keySchema.encode(message.getKey());
-            byte [] valueBytes = valueSchema.encode(message.getValue());
-            ByteBuffer byteBuffer = ByteBuffer.allocate(4 + keyBytes.length + 4 + valueBytes.length);
-            byteBuffer.putInt(keyBytes.length).put(keyBytes).putInt(valueBytes.length).put(valueBytes);
-            return byteBuffer.array();
-        } else {
-            return valueSchema.encode(message.getValue());
+    @Override
+    protected SchemaReader<KeyValue<K, V>> loadReader(byte[] schemaVersion) {
+        if (this.schemaInfo.getProperties().get("key.schema.type") == String.valueOf(SchemaType.AVRO)
+                && this.schemaInfo.getProperties().get("value.schema.type") == String.valueOf(SchemaType.AVRO)) {
+            SchemaInfo schemaInfo = schemaInfoProvider.getSchemaByVersion(schemaVersion);
+            if (schemaInfo != null) {
+                ByteBuffer byteBuffer = ByteBuffer.wrap(schemaInfo.getSchema());
+                int keySchemaLength = byteBuffer.getInt();
+                int valueSchemaLength = byteBuffer.getInt();
+                byte[] keyBytes = new byte[keySchemaLength];
+                byteBuffer.get(keyBytes);
+                byte[] valueBytes = new byte[valueSchemaLength];
+                byteBuffer.get(valueBytes);
+                Schema<K> keySchema = AvroSchema.of(SchemaDefinition.<K>builder().withJsonDef(new String(keyBytes)).build());
+                Schema<V> valueSchema = AvroSchema.of(SchemaDefinition.<V>builder().withJsonDef(new String(valueBytes)).build());
+                return new KeyValueReader<>(keySchema, valueSchema,
+                        KeyValueEncodingType.valueOf(schemaInfo.getProperties().get("kv.encoding.type")));
+            }
         }
-
-    }
-
-    public KeyValue<K, V> decode(byte[] bytes) {
-        if (this.keyValueEncodingType == KeyValueEncodingType.SEPARATED) {
-            throw new SchemaSerializationException("This method cannot be used under this SEPARATED encoding type");
-        }
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        int keyLength = byteBuffer.getInt();
-        byte[] keyBytes = new byte[keyLength];
-        byteBuffer.get(keyBytes);
-
-        int valueLength = byteBuffer.getInt();
-        byte[] valueBytes = new byte[valueLength];
-        byteBuffer.get(valueBytes);
-
-        return decode(keyBytes, valueBytes);
-    }
-
-    public KeyValue<K, V> decode(byte[] keyBytes, byte[] valueBytes) {
-        return new KeyValue<>(keySchema.decode(keyBytes), valueSchema.decode(valueBytes));
-    }
-
-    public SchemaInfo getSchemaInfo() {
-        return this.schemaInfo;
+        return reader;
     }
 }

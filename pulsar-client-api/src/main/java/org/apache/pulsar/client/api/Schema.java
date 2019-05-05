@@ -98,6 +98,18 @@ public interface Schema<T> {
     }
 
     /**
+     * Decode a byte array into an object using the schema definition and deserializer implementation
+     *
+     * @param keyBytes the key byte array of KeyValue to decode
+     * @param valueBytes the value byte array of KeyValue to decode
+     * @param schemaVersion the schema version to decode the object. null indicates using latest version.
+     * @return the deserialized object
+     */
+    default T decode(byte[] keyBytes, byte[] valueBytes, byte[] schemaVersion) {
+        return decode(keyBytes);
+    }
+
+    /**
      * Decode a byte array into an object using a given version.
      *
      * @param bytes

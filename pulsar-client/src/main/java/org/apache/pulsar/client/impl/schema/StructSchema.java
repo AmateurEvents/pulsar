@@ -54,7 +54,7 @@ public abstract class StructSchema<T> implements Schema<T> {
 
     protected static final Logger LOG = LoggerFactory.getLogger(StructSchema.class);
 
-    protected final org.apache.avro.Schema schema;
+    protected final byte[] schema;
     protected final SchemaInfo schemaInfo;
     protected SchemaReader<T> reader;
     protected SchemaWriter<T> writer;
@@ -68,12 +68,8 @@ public abstract class StructSchema<T> implements Schema<T> {
             });
 
     protected StructSchema(SchemaInfo schemaInfo) {
-        this.schema = parseAvroSchema(new String(schemaInfo.getSchema(), UTF_8));
+        this.schema = schemaInfo.getSchema();
         this.schemaInfo = schemaInfo;
-    }
-
-    public org.apache.avro.Schema getAvroSchema() {
-        return schema;
     }
 
     @Override
@@ -90,6 +86,20 @@ public abstract class StructSchema<T> implements Schema<T> {
     public T decode(byte[] bytes, byte[] schemaVersion) {
         try {
             return readerCache.get(schemaVersion).read(bytes);
+        } catch (ExecutionException e) {
+            LOG.error("Can't get generic schema for topic {} schema version {}",
+                    schemaInfoProvider.getTopicName(), Hex.encodeHexString(schemaVersion), e);
+            throw new RuntimeException("Can't get generic schema for topic " + schemaInfoProvider.getTopicName());
+        }
+    }
+
+    @Override
+    public T decode(byte[] keyBytes, byte[] valueBytes, byte[] schemaVersion) {
+        try {
+            if (schemaVersion == null) {
+                return reader.read(keyBytes, valueBytes);
+            }
+            return readerCache.get(schemaVersion).read(keyBytes, valueBytes);
         } catch (ExecutionException e) {
             LOG.error("Can't get generic schema for topic {} schema version {}",
                     schemaInfoProvider.getTopicName(), Hex.encodeHexString(schemaVersion), e);

@@ -27,6 +27,8 @@ import org.apache.pulsar.client.api.schema.GenericSchema;
 import org.apache.pulsar.client.impl.schema.StructSchema;
 import org.apache.pulsar.common.schema.SchemaInfo;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * A generic schema representation.
  */
@@ -34,10 +36,13 @@ public abstract class GenericSchemaImpl extends StructSchema<GenericRecord> impl
 
     protected final List<Field> fields;
 
+    protected final org.apache.avro.Schema parseSchema;
+
     protected GenericSchemaImpl(SchemaInfo schemaInfo) {
         super(schemaInfo);
+        this.parseSchema = parseAvroSchema(new String(schema, UTF_8));
 
-        this.fields = schema.getFields()
+        this.fields = parseSchema.getFields()
                 .stream()
                 .map(f -> new Field(f.name(), f.pos()))
                 .collect(Collectors.toList());
@@ -66,4 +71,7 @@ public abstract class GenericSchemaImpl extends StructSchema<GenericRecord> impl
         }
     }
 
+    public org.apache.avro.Schema getAvroSchema() {
+        return parseSchema;
+    }
 }
