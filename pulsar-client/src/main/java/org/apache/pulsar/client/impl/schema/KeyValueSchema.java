@@ -91,7 +91,10 @@ public class KeyValueSchema<K, V> extends StructSchema<KeyValue<K, V>> {
         return KV_BYTES;
     }
 
-    private KeyValueSchema(SchemaInfo schemaInfo, Schema<K> keySchema, Schema<V> valueSchema, KeyValueEncodingType keyValueEncodingType) {
+    private KeyValueSchema(SchemaInfo schemaInfo,
+                           Schema<K> keySchema,
+                           Schema<V> valueSchema,
+                           KeyValueEncodingType keyValueEncodingType) {
         super(schemaInfo);
         this.keySchema = keySchema;
         this.valueSchema = valueSchema;
@@ -105,7 +108,9 @@ public class KeyValueSchema<K, V> extends StructSchema<KeyValue<K, V>> {
         return true;
     }
 
-    protected static SchemaInfo parseKeyValueSchemaInfo(Schema keySchema, Schema valueSchema, KeyValueEncodingType keyValueEncodingType) {
+    protected static SchemaInfo parseKeyValueSchemaInfo(Schema keySchema,
+                                                        Schema valueSchema,
+                                                        KeyValueEncodingType keyValueEncodingType) {
         byte[] keySchemaInfo = keySchema.getSchemaInfo().getSchema();
         byte[] valueSchemaInfo = valueSchema.getSchemaInfo().getSchema();
 

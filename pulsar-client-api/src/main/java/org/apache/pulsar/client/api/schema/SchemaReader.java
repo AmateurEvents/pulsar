@@ -36,6 +36,6 @@ public interface SchemaReader<T> {
      * @return the serialized object
      */
     default T read(byte[] keyBytes, byte[] valueBytes) {
-        return null;
+        throw new UnsupportedOperationException("Only KeyValueSchema Schema support this method");
     }
 }

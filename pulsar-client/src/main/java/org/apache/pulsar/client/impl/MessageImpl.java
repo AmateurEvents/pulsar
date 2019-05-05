@@ -246,11 +246,19 @@ public class MessageImpl<T> implements Message<T> {
         // this is an optimization to only get schema version when necessary
         byte [] schemaVersion = getSchemaVersion();
         if (schema.supportSchemaVersioning() && schemaVersion != null) {
+            if (SchemaType.KEY_VALUE == schema.getSchemaInfo().getType()) {
+                KeyValueSchema kvSchema = (KeyValueSchema) schema;
+                if (kvSchema.getKeyValueEncodingType() == KeyValueEncodingType.SEPARATED) {
+                    return schema.decode(getKeyBytes(), getData(), schemaVersion);
+                } else {
+                    return schema.decode(getData(), schemaVersion);
+                }
+            }
             return schema.decode(getData(), schemaVersion);
         } else if (SchemaType.KEY_VALUE == schema.getSchemaInfo().getType()) {
             KeyValueSchema kvSchema = (KeyValueSchema) schema;
             if (kvSchema.getKeyValueEncodingType() == KeyValueEncodingType.SEPARATED) {
-                return schema.decode(getKeyBytes(), getData());
+                return schema.decode(getKeyBytes(), getData(), null);
             } else {
                 return schema.decode(getData());
             }
