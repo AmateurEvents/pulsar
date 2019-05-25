@@ -105,9 +105,13 @@ public class SchemasResource extends AdminResource {
         @ApiResponse(code = 412, message = "Failed to find the ownership for the topic"),
     })
     public void getSchema(
+        @ApiParam(value = "Specify the tenant to which this topic belongs")
         @PathParam("tenant") String tenant,
+        @ApiParam(value = "Specify the namespace to which this topic belongs")
         @PathParam("namespace") String namespace,
+        @ApiParam(value = "Specifies topic name")
         @PathParam("topic") String topic,
+        @ApiParam(value = "Whether to turn on authentication mode")
         @QueryParam("authoritative") @DefaultValue("false") boolean authoritative,
         @Suspended final AsyncResponse response
     ) {
@@ -155,10 +159,15 @@ public class SchemasResource extends AdminResource {
         @ApiResponse(code = 412, message = "Failed to find the ownership for the topic"),
     })
     public void getSchema(
+        @ApiParam(value = "Specify the tenant to which this topic belongs")
         @PathParam("tenant") String tenant,
+        @ApiParam(value = "Specify the namespace to which this topic belongs")
         @PathParam("namespace") String namespace,
+        @ApiParam(value = "Specifies topic name")
         @PathParam("topic") String topic,
+        @ApiParam("Specifies the version number to get")
         @PathParam("version") @Encoded String version,
+        @ApiParam(value = "Whether to turn on authentication mode")
         @QueryParam("authoritative") @DefaultValue("false") boolean authoritative,
         @Suspended final AsyncResponse response
     ) {
@@ -208,9 +217,13 @@ public class SchemasResource extends AdminResource {
         @ApiResponse(code = 412, message = "Failed to find the ownership for the topic"),
     })
     public void deleteSchema(
+        @ApiParam(value = "Specify the tenant to which this topic belongs")
         @PathParam("tenant") String tenant,
+        @ApiParam(value = "Specify the namespace to which this topic belongs")
         @PathParam("namespace") String namespace,
+        @ApiParam(value = "Specifies topic name")
         @PathParam("topic") String topic,
+        @ApiParam(value = "Whether to turn on authentication mode")
         @QueryParam("authoritative") @DefaultValue("false") boolean authoritative,
         @Suspended final AsyncResponse response
     ) {
@@ -247,8 +260,11 @@ public class SchemasResource extends AdminResource {
         @ApiResponse(code = 412, message = "Failed to find the ownership for the topic"),
     })
     public void postSchema(
+        @ApiParam(value = "Specify the tenant to which this topic belongs")
         @PathParam("tenant") String tenant,
+        @ApiParam(value = "Specify the namespace to which this topic belongs")
         @PathParam("namespace") String namespace,
+        @ApiParam(value = "Specifies topic name")
         @PathParam("topic") String topic,
         @ApiParam(
             value = "A JSON value presenting a schema playload. An example of the expected schema can be found down"
@@ -261,6 +277,7 @@ public class SchemasResource extends AdminResource {
             )
         )
         PostSchemaPayload payload,
+        @ApiParam(value = "Whether to turn on authentication mode")
         @QueryParam("authoritative") @DefaultValue("false") boolean authoritative,
         @Suspended final AsyncResponse response
     ) {
