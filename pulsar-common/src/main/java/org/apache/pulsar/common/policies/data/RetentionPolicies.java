@@ -18,10 +18,29 @@
  */
 package org.apache.pulsar.common.policies.data;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  */
+@ApiModel(
+        value = "RetentionPolicies",
+        description = "Set the retention policy of backlog for a namespace"
+)
 public class RetentionPolicies {
+
+    @ApiModelProperty(
+            name = "retentionTimeInMinutes",
+            value = "Retention time in minutes (or minutes, hours,days,weeks eg: 100m,"
+                    + "3h, 2d, 5w). 0 means no retention and -1 means infinite time retention"
+    )
     private int retentionTimeInMinutes;
+
+    @ApiModelProperty(
+            name = "retentionSizeInMB",
+            value = "Retention size limit (eg: 10M, 16G, 3T). 0 or less than 1MB means "
+                    + "no retention and -1 means infinite size retention"
+    )
     private long retentionSizeInMB;
 
     public RetentionPolicies() {

@@ -21,6 +21,8 @@ package org.apache.pulsar.common.policies.data;
 import java.util.Objects;
 
 import com.google.common.base.MoreObjects;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Unit of a backlog quota configuration for a scoped resource in a Pulsar instance.
@@ -28,8 +30,28 @@ import com.google.common.base.MoreObjects;
  * A scoped resource is identified by a {@link BacklogQuotaType} enumeration type which is containing two attributes:
  * <code>limit</code> representing a quota limit in bytes and <code>policy</code> for backlog retention policy.
  */
+@ApiModel(
+        value = "BacklogQuota",
+        description = "Unit of a backlog quota configuration for a scoped resource in a Pulsar instance."
+)
 public class BacklogQuota {
+
+    @ApiModelProperty(
+            name = "limit",
+            value = "Quota limit in bytes"
+    )
     private long limit;
+
+    @ApiModelProperty(
+            name = "policy",
+            value = "Enumeration type determines how to retain backlog against the resource shortages.\n"
+                    + "producer_request_hold: Policy which holds producer's send request until the "
+                    + "resource becomes available (or holding times out)\n"
+                    + "producer_exception: Policy which throws javax.jms.ResourceAllocationException to the producer\n"
+                    + "consumer_backlog_eviction: Policy which evicts the oldest message "
+                    + "from the slowest consumer's backlog",
+            allowableValues = "producer_request_hold,producer_exception,consumer_backlog_eviction"
+    )
     private RetentionPolicy policy;
 
     /**

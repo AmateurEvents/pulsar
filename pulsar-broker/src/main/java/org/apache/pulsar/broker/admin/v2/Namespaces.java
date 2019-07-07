@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -354,10 +355,21 @@ public class Namespaces extends NamespacesBase {
     @POST
     @Path("/{tenant}/{namespace}/subscriptionDispatchRate")
     @ApiOperation(value = "Set Subscription dispatch-rate throttling for all topics of the namespace")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission") })
-    public void setSubscriptionDispatchRate(@PathParam("tenant") String tenant,
-                                            @PathParam("namespace") String namespace,
-                                            DispatchRate dispatchRate) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void setSubscriptionDispatchRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "Set the rate of messages at the namespace level")
+            DispatchRate dispatchRate) {
         validateNamespaceName(tenant, namespace);
         internalSetSubscriptionDispatchRate(dispatchRate);
     }
@@ -365,10 +377,18 @@ public class Namespaces extends NamespacesBase {
     @GET
     @Path("/{tenant}/{namespace}/subscriptionDispatchRate")
     @ApiOperation(value = "Get Subscription dispatch-rate configured for the namespace, -1 represents not configured yet")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-        @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public DispatchRate getSubscriptionDispatchRate(@PathParam("tenant") String tenant,
-                                                    @PathParam("namespace") String namespace) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public DispatchRate getSubscriptionDispatchRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetSubscriptionDispatchRate();
     }
@@ -376,9 +396,21 @@ public class Namespaces extends NamespacesBase {
     @POST
     @Path("/{tenant}/{namespace}/subscribeRate")
     @ApiOperation(value = "Set subscribe-rate throttling for all topics of the namespace")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission") })
-    public void setSubscribeRate(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
-                                SubscribeRate subscribeRate) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void setSubscribeRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "Set subscribe rate per consumer for all topics of the namespace")
+            SubscribeRate subscribeRate) {
         validateNamespaceName(tenant, namespace);
         internalSetSubscribeRate(subscribeRate);
     }
@@ -386,10 +418,18 @@ public class Namespaces extends NamespacesBase {
     @GET
     @Path("/{tenant}/{namespace}/subscribeRate")
     @ApiOperation(value = "Get subscribe-rate configured for the namespace")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public SubscribeRate getSubscribeRate(@PathParam("tenant") String tenant,
-                                        @PathParam("namespace") String namespace) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public SubscribeRate getSubscribeRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetSubscribeRate();
     }
@@ -397,10 +437,21 @@ public class Namespaces extends NamespacesBase {
     @POST
     @Path("/{tenant}/{namespace}/replicatorDispatchRate")
     @ApiOperation(value = "Set replicator dispatch-rate throttling for all topics of the namespace")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission") })
-    public void setReplicatorDispatchRate(@PathParam("tenant") String tenant,
-                                            @PathParam("namespace") String namespace,
-                                            DispatchRate dispatchRate) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void setReplicatorDispatchRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "Set the rate of messages at the namespace level")
+            DispatchRate dispatchRate) {
         validateNamespaceName(tenant, namespace);
         internalSetReplicatorDispatchRate(dispatchRate);
     }
@@ -408,10 +459,18 @@ public class Namespaces extends NamespacesBase {
     @GET
     @Path("/{tenant}/{namespace}/replicatorDispatchRate")
     @ApiOperation(value = "Get replicator dispatch-rate configured for the namespace, -1 represents not configured yet")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-        @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public DispatchRate getReplicatorDispatchRate(@PathParam("tenant") String tenant,
-                                                    @PathParam("namespace") String namespace) {
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public DispatchRate getReplicatorDispatchRate(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetReplicatorDispatchRate();
     }
@@ -419,9 +478,16 @@ public class Namespaces extends NamespacesBase {
     @GET
     @Path("/{tenant}/{namespace}/backlogQuotaMap")
     @ApiOperation(value = "Get backlog quota map on a namespace.")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public Map<BacklogQuotaType, BacklogQuota> getBacklogQuotaMap(@PathParam("tenant") String tenant,
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public Map<BacklogQuotaType, BacklogQuota> getBacklogQuotaMap(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
             @PathParam("namespace") String namespace) {
         validateAdminAccessForTenant(tenant);
         validateNamespaceName(tenant, namespace);
@@ -433,12 +499,23 @@ public class Namespaces extends NamespacesBase {
     @POST
     @Path("/{tenant}/{namespace}/backlogQuota")
     @ApiOperation(value = " Set a backlog quota for all the topics on a namespace.")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
             @ApiResponse(code = 409, message = "Concurrent modification"),
-            @ApiResponse(code = 412, message = "Specified backlog quota exceeds retention quota. Increase retention quota and retry request") })
-    public void setBacklogQuota(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
-            @QueryParam("backlogQuotaType") BacklogQuotaType backlogQuotaType, BacklogQuota backlogQuota) {
+            @ApiResponse(code = 412, message = "Specified backlog quota exceeds retention quota. Increase retention quota and retry request"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void setBacklogQuota(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "Identifier to a backlog quota configuration", allowableValues = "destination_storage")
+            @QueryParam("backlogQuotaType") BacklogQuotaType backlogQuotaType,
+            @ApiParam(value = "Unit of a backlog quota configuration for a scoped resource in a Pulsar instance")
+            BacklogQuota backlogQuota) {
         validateNamespaceName(tenant, namespace);
         internalSetBacklogQuota(backlogQuotaType, backlogQuota);
     }
@@ -446,10 +523,20 @@ public class Namespaces extends NamespacesBase {
     @DELETE
     @Path("/{tenant}/{namespace}/backlogQuota")
     @ApiOperation(value = "Remove a backlog quota policy from a namespace.")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
-            @ApiResponse(code = 409, message = "Concurrent modification") })
-    public void removeBacklogQuota(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Broker needs to be connected to global zookeeper before making a read-write operation"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void removeBacklogQuota(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "Identifier to a backlog quota configuration", allowableValues = "destination_storage")
             @QueryParam("backlogQuotaType") BacklogQuotaType backlogQuotaType) {
         validateNamespaceName(tenant, namespace);
         internalRemoveBacklogQuota(backlogQuotaType);
@@ -458,9 +545,17 @@ public class Namespaces extends NamespacesBase {
     @GET
     @Path("/{tenant}/{namespace}/retention")
     @ApiOperation(value = "Get retention config on a namespace.")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public RetentionPolicies getRetention(@PathParam("tenant") String tenant,
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public RetentionPolicies getRetention(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetRetention();
@@ -469,11 +564,19 @@ public class Namespaces extends NamespacesBase {
     @POST
     @Path("/{tenant}/{namespace}/retention")
     @ApiOperation(value = " Set retention configuration on a namespace.")
-    @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "This operation requires super-user access"),
+            @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
             @ApiResponse(code = 409, message = "Concurrent modification"),
-            @ApiResponse(code = 412, message = "Retention Quota must exceed backlog quota") })
-    public void setRetention(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
+            @ApiResponse(code = 412, message = "Retention Quota must exceed backlog quota"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public void setRetention(
+            @ApiParam(value = "Specify the tenant")
+            @PathParam("tenant") String tenant,
+            @ApiParam(value = "Specify the namespace")
+            @PathParam("namespace") String namespace,
             RetentionPolicies retention) {
         validateNamespaceName(tenant, namespace);
         internalSetRetention(retention);

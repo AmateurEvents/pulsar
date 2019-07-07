@@ -19,12 +19,26 @@
 package org.apache.pulsar.common.policies.data;
 
 import com.google.common.base.MoreObjects;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
 
+@ApiModel(
+        value = "SubscribeRate",
+        description = "Set subscribe rate per consumer for all topics of the namespace"
+)
 public class SubscribeRate {
 
+    @ApiModelProperty(
+            name = "subscribeThrottlingRatePerConsumer",
+            value = "Consumer subscription rate size."
+    )
     public int subscribeThrottlingRatePerConsumer = -1;
+    @ApiModelProperty(
+            name = "ratePeriodInSecond",
+            value = "Consumer subscription rate cycle, default 30s."
+    )
     public int ratePeriodInSecond = 30;
 
     public SubscribeRate() {

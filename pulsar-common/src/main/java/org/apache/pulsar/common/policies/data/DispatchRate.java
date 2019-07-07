@@ -21,11 +21,33 @@ package org.apache.pulsar.common.policies.data;
 import java.util.Objects;
 
 import com.google.common.base.MoreObjects;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
+@ApiModel(
+        value = "DispatchRate",
+        description = "Set the rate of messages at the namespace level."
+)
 public class DispatchRate {
 
+    @ApiModelProperty(
+            name = "dispatchThrottlingRateInMsg",
+            value = "Rate limiting according to the number of messages."
+
+    )
     public int dispatchThrottlingRateInMsg = -1;
+
+    @ApiModelProperty(
+            name = "dispatchThrottlingRateInByte",
+            value = "Rate limiting according to message size."
+
+    )
     public long dispatchThrottlingRateInByte = -1;
+
+    @ApiModelProperty(
+            name = "ratePeriodInSecond",
+            value = "Rate scheduling period, unit is seconds, default value is 1 second."
+    )
     public int ratePeriodInSecond = 1; /* by default dispatch-rate will be calculate per 1 second */
 
     public DispatchRate() {
