@@ -42,7 +42,7 @@ public class WorkerContainer extends PulsarContainer<WorkerContainer> {
     protected void beforeStop() {
         super.beforeStop();
         if (null != containerId) {
-            DockerUtils.dumpContainerLogToTarget(getDockerClient(), containerId);
+            DockerUtils.dumpContainerLogDirToTarget(getDockerClient(), containerId, "/pulsar/logs/functions");
             DockerUtils.dumpContainerDirToTargetCompressed(
                     getDockerClient(),
                     containerId,
