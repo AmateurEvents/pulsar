@@ -47,8 +47,8 @@ jobs:
         with:
           maven-version: 3.6.1
 
-      - name: build and check license
-        run: mvn -B -ntp -DskipTests license:check install
-          
-      - name: license check
-        run: src/check-binary-license ./distribution/server/target/apache-pulsar-*-bin.tar.gz
+#      - name: build and check license
+#        run: mvn -B -ntp -DskipTests license:check install
+#
+#      - name: license check
+#        run: src/check-binary-license ./distribution/server/target/apache-pulsar-*-bin.tar.gz

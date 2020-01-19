@@ -38,11 +38,11 @@ jobs:
         with:
           java-version: 1.8
 
-      - name: checkout
-        uses: actions/checkout@v1
-
-      - name: build artifacts and docker image
-        run: mvn -B install -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR -Pdocker -DskipTests
-
-      - name: run integration tests
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=tiered-jcloud-storage.xml -DintegrationTests -DredirectTestOutputToFile=false
+#      - name: checkout
+#        uses: actions/checkout@v1
+#
+#      - name: build artifacts and docker image
+#        run: mvn -B install -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR -Pdocker -DskipTests
+#
+#      - name: run integration tests
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=tiered-jcloud-storage.xml -DintegrationTests -DredirectTestOutputToFile=false

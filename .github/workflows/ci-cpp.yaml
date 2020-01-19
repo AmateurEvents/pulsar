@@ -41,17 +41,17 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
 
-      - name: build pacakge
-        run: mvn -B -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR package -DskipTests
-
-      - name: build cpp artifacts
-        run: |
-          echo "Build C++ client library"
-          export CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DBUILD_DYNAMIC_LIB=OFF"
-          pulsar-client-cpp/docker-build.sh
-
-      - name: run c++ tests
-        run: pulsar-client-cpp/docker-tests.sh
+#      - name: build pacakge
+#        run: mvn -B -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR package -DskipTests
+#
+#      - name: build cpp artifacts
+#        run: |
+#          echo "Build C++ client library"
+#          export CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DBUILD_DYNAMIC_LIB=OFF"
+#          pulsar-client-cpp/docker-build.sh
+#
+#      - name: run c++ tests
+#        run: pulsar-client-cpp/docker-tests.sh
 
 
 
