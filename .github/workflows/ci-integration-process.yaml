@@ -59,8 +59,8 @@ jobs:
       - name: run integration function
         run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
 
-      - name: run integration SlidingCountWindowTest
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SlidingCountWindowTest
+#      - name: run integration SlidingCountWindowTest
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SlidingCountWindowTest
 
       - name: run integration TumblingCountWindowTest
         run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=TumblingCountWindowTest
