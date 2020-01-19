@@ -63,13 +63,6 @@ public class ChaosContainer<SelfT extends ChaosContainer<SelfT>> extends Generic
     public void start() {
         super.start();
         this.tailContainerLog();
-        if (this.clusterName.contains("pulsar-broker")) {
-            DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/broker.log");
-        } else if (this.clusterName.contains("bookie")) {
-            DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/bookie.log");
-        } else if (this.clusterName.contains("functions-worker")) {
-            DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/functions_worker.log");
-        }
     }
 
     @Override
@@ -96,6 +89,13 @@ public class ChaosContainer<SelfT extends ChaosContainer<SelfT>> extends Generic
                     log.info(new String(item.getPayload(), UTF_8));
                 }
             });
+            if (this.clusterName.contains("pulsar-broker")) {
+                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/broker.log");
+            } else if (this.clusterName.contains("bookie")) {
+                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/bookie.log");
+            } else if (this.clusterName.contains("functions-worker")) {
+                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/functions_worker.log");
+            }
         });
     }
 
