@@ -45,7 +45,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: build artifacts and docker image
-        run: mvn -B -f tests/docker-images/latest-version-image/pom.xml install -am -Pdocker -DskipTests
+        run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
 
       - name: remove docker node image
         run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
