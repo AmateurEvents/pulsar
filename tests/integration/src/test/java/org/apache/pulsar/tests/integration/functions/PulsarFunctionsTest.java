@@ -1002,9 +1002,10 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         ContainerExecResult containerExecResult = pulsarCluster.getAnyWorker().execCmd(commands);
         assertTrue(containerExecResult.getStdout().contains("\"Created successfully\""));
 
-        pulsarCluster.getAnyWorker().execCmdAsync("find", ".", "-name", "*.log");
+        pulsarCluster.getAnyWorker().execCmdAsync("find", ".", "-name", "/tmp/functions");
 
-        pulsarCluster.getAnyWorker().execCmdAsync("tail", "-f", "/pulsar/logs/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
+        // /tmp/functions/public/default/test-sliding-window-fn-shstbkai
+        pulsarCluster.getAnyWorker().execCmdAsync("tail", "-f", "/tmp/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
         // get function info
         getFunctionInfoSuccess(functionName);
 
