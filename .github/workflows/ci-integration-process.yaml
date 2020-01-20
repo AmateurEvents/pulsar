@@ -41,68 +41,78 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
 
-      - name: run install by skip tests
-        run: mvn clean install -DskipTests
+      - name: Get docker
+        run: docker images
+
+      - name: Get size
+        run: df -h
 
       - name: build artifacts and docker image
-        run: mvn -B -f tests/docker-images/latest-version-image/pom.xml install -am -Pdocker -DskipTests
+        run: mvn clean install -Pdocker -DskipTests
 
-      - name: clean docker container
-        run: docker system prune -f
+      - name: Get docker images
+        run: docker images
 
-      - name: remove docker node image
-        run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
+      - name: Get size
+        run: df -h
 
-      - name: remove docker builder and microsoft image
-        run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
 
-      - name: run integration function
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
-
-#      - name: run integration SlidingCountWindowTest
-#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SlidingCountWindowTest
-
-      - name: run integration TumblingCountWindowTest
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=TumblingCountWindowTest
-
-      - name: run integration PythonFunctionNegAck
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonFunctionNegAck
-
-      - name: run integration JavaFunctionNegAck
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaFunctionNegAck
-
-      - name: run integration PythonPublishFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonPublishFunction
-
-      - name: run integration JavaPublishFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaPublishFunction
-
-      - name: run integration SerdeFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SerdeFunction
-
-      - name: run integration PythonExclamationFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationFunction
-
-      - name: run integration PythonExclamationFunctionWithExtraDeps
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationFunctionWithExtraDeps
-
-      - name: run integration PythonExclamationZipFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationZipFunction
-
-      - name: run integration PythonExclamationTopicPatternFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationTopicPatternFunction
-
-      - name: run integration JavaExclamationFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaExclamationFunction
-
-      - name: run integration JavaExclamationTopicPatternFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaExclamationTopicPatternFunction
-
-      - name: run integration AutoSchemaFunction
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=AutoSchemaFunction
-
-      - name: run integration source
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=source
-
-      - name: run integraion sink
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=sink
+#      - name: clean docker container
+#        run: docker system prune -f
+#
+#      - name: remove docker node image
+#        run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
+#
+#      - name: remove docker builder and microsoft image
+#        run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
+#
+#      - name: run integration function
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
+#
+##      - name: run integration SlidingCountWindowTest
+##        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SlidingCountWindowTest
+#
+#      - name: run integration TumblingCountWindowTest
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=TumblingCountWindowTest
+#
+#      - name: run integration PythonFunctionNegAck
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonFunctionNegAck
+#
+#      - name: run integration JavaFunctionNegAck
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaFunctionNegAck
+#
+#      - name: run integration PythonPublishFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonPublishFunction
+#
+#      - name: run integration JavaPublishFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaPublishFunction
+#
+#      - name: run integration SerdeFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=SerdeFunction
+#
+#      - name: run integration PythonExclamationFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationFunction
+#
+#      - name: run integration PythonExclamationFunctionWithExtraDeps
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationFunctionWithExtraDeps
+#
+#      - name: run integration PythonExclamationZipFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationZipFunction
+#
+#      - name: run integration PythonExclamationTopicPatternFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=PythonExclamationTopicPatternFunction
+#
+#      - name: run integration JavaExclamationFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaExclamationFunction
+#
+#      - name: run integration JavaExclamationTopicPatternFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=JavaExclamationTopicPatternFunction
+#
+#      - name: run integration AutoSchemaFunction
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=AutoSchemaFunction
+#
+#      - name: run integration source
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=source
+#
+#      - name: run integraion sink
+#        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=sink
