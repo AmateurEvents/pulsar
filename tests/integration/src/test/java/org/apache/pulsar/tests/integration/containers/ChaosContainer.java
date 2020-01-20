@@ -97,7 +97,7 @@ public class ChaosContainer<SelfT extends ChaosContainer<SelfT>> extends Generic
             } else if (this.getContainerName().contains("bookie")) {
                 DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/bookie.log");
             } else if (this.getContainerName().contains("functions-worker")) {
-                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(),  "-f", "/var/log/pulsar/functions_worker.log");
+                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/functions_worker.log");
             }
         });
     }
