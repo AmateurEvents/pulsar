@@ -27,9 +27,11 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.pulsar.tests.integration.docker.ContainerExecException;
 import org.apache.pulsar.tests.integration.docker.ContainerExecResult;
 import org.apache.pulsar.tests.integration.utils.DockerUtils;
 import org.testcontainers.containers.GenericContainer;
@@ -89,12 +91,20 @@ public class ChaosContainer<SelfT extends ChaosContainer<SelfT>> extends Generic
                     log.info(new String(item.getPayload(), UTF_8));
                 }
             });
-            if (this.clusterName.contains("pulsar-broker")) {
-                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/broker.log");
-            } else if (this.clusterName.contains("bookie")) {
-                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/bookie.log");
-            } else if (this.clusterName.contains("functions-worker")) {
-                DockerUtils.runCommandAsync(this.dockerClient, this.getContainerId(), "tail", "-f", "/var/log/pulsar/functions_worker.log");
+            try {
+                if (this.clusterName.contains("pulsar-broker")) {
+                    DockerUtils.runCommand(this.dockerClient, this.getContainerId(), "/bin/bash", "-c", "tail", "-f", "/var/log/pulsar/broker.log");
+                } else if (this.clusterName.contains("bookie")) {
+                    DockerUtils.runCommand(this.dockerClient, this.getContainerId(), "/bin/bash", "-c","tail", "-f", "/var/log/pulsar/bookie.log");
+                } else if (this.clusterName.contains("functions-worker")) {
+                    DockerUtils.runCommand(this.dockerClient, this.getContainerId(), "/bin/bash", "-c","tail", "-f", "/var/log/pulsar/functions_worker.log");
+                }
+            } catch (ContainerExecException e) {
+
+            } catch (ExecutionException e) {
+
+            } catch (InterruptedException e) {
+
             }
         });
     }

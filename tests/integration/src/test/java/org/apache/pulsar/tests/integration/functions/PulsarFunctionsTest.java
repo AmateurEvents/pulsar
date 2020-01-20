@@ -56,6 +56,7 @@ import org.apache.pulsar.tests.integration.io.*;
 import org.apache.pulsar.tests.integration.io.JdbcSinkTester.Foo;
 import org.apache.pulsar.tests.integration.topologies.FunctionRuntimeType;
 import org.apache.pulsar.tests.integration.topologies.PulsarCluster;
+import org.apache.pulsar.tests.integration.utils.DockerUtils;
 import org.assertj.core.api.Assertions;
 import org.testcontainers.containers.GenericContainer;
 import org.testng.annotations.Test;
@@ -1001,6 +1002,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         ContainerExecResult containerExecResult = pulsarCluster.getAnyWorker().execCmd(commands);
         assertTrue(containerExecResult.getStdout().contains("\"Created successfully\""));
 
+        pulsarCluster.getWorker(0).execCmd("/bin/bash", "-c", "cat", "/pulsar/logs/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
         // get function info
         getFunctionInfoSuccess(functionName);
 
