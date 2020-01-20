@@ -41,26 +41,113 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
 
+      - name: Get directory from mnt
+        run: ls -l /mnt
+
+      - name: Get docker images
+        run: docker images
+
+      - name: Before get space size
+        run: df -h
+
+      - name: Get root infos
+        run: ls /
+
+      - name: Get home directory
+        run: ls /home
+
+      - name: GET home runner
+        run: ls -lh /home/runner/ && du -sh /home/runner/
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/ && du -sh /home/runner/work/pulsar/
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/pulsar && du -sh /home/runner/work/pulsar/pulsar
+
+      - name: get root size
+        run: sudo du -sh /* | sort -rn | head
+
       - name: run install by skip tests
         run: mvn clean install -DskipTests
 
       - name: build artifacts and docker image
-        run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
+        run: mvn -B -f /home/runner/work/pulsar/pulsar/tests/docker-images/latest-version-image/pom.xml install -am -Pdocker -DskipTests
 
-      - name: clean docker container
+      - name: get home size
+        run: sudo du -sh *
+
+      - name: Get directory from mnt
+        run: ls -l /mnt
+
+      - name: Before get space size
+        run: df -h
+
+      - name: Get root infos
+        run: ls /
+
+      - name: Get home directory
+        run: ls /home
+
+      - name: GET home runner
+        run: ls -lh /home/runner/ && du -sh /home/runner/*
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/ && du -sh /home/runner/work/pulsar/*
+
+      - name: Get docker images
+        run: docker images
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/pulsar && du -sh /home/runner/work/pulsar/pulsar
+
+      - name: Get docker images
+        run: docker images
+
+      - name: Clean docker
         run: docker system prune -f
 
-      - name: remove docker node image
+      #      - name: Remove no used image
+      #        run: docker images | grep -v apachepulsar/pulsar-test-latest-version | awk '{print $3}' | grep -v IMAGE | sort -u | xargs docker rmi -f
+
+      #      - name: Remove pulsar-all
+      #        run: docker images | grep pulsar-all | awk '{print $3 }' | xargs docker rmi -f
+      #
+      - name: Remove node image
         run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
 
-      - name: remove docker builder and microsoft image
+      - name: Remove node image
         run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
 
-      - name: run integration function
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
+      - name: Before get space size
+        run: df -h
 
-      - name: run integration source
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=source
+      - name: Get docker images
+        run: docker images
 
-      - name: run integraion sink
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=sink
+      - name: run integration tests
+        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false
+
+      - name: After get spache size
+        run: df -h
+
+      - name: Get directory from mnt
+        run: ls -l /mnt
+
+      - name: Before get space size
+        run: df -h
+
+      - name: Get root infos
+        run: ls /
+
+      - name: Get home directory
+        run: ls /home
+
+      - name: GET home runner
+        run: ls -lh /home/runner/ && du -sh /home/runner/
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/ && du -sh /home/runner/work/pulsar/
+
+      - name: GET home runner work
+        run: ls -lh /home/runner/work/pulsar/pulsar && du -sh /home/runner/work/pulsar/pulsar
