@@ -1002,6 +1002,8 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         ContainerExecResult containerExecResult = pulsarCluster.getAnyWorker().execCmd(commands);
         assertTrue(containerExecResult.getStdout().contains("\"Created successfully\""));
 
+        pulsarCluster.getAnyWorker().execCmd("find", ".", "-name", "*.log");
+
         pulsarCluster.getAnyWorker().execCmdAsync("tail", "-f", "/pulsar/logs/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
         // get function info
         getFunctionInfoSuccess(functionName);
