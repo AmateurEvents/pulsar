@@ -1004,8 +1004,6 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
 
         pulsarCluster.getAnyWorker().execCmdAsync("find", "/tmp", "-name", "*.log");
 
-        // /tmp/functions/public/default/test-sliding-window-fn-shstbkai
-        pulsarCluster.getAnyWorker().execCmdAsync("tail", "-f", "/tmp/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
         // get function info
         getFunctionInfoSuccess(functionName);
 
@@ -1028,6 +1026,9 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         assertEquals(functionStatus.getInstances().get(0).getStatus().getNumSuccessfullyProcessed(), 0);
         assertEquals(functionStatus.getInstances().get(0).getStatus().getLatestUserExceptions().size(), 0);
         assertEquals(functionStatus.getInstances().get(0).getStatus().getLatestSystemExceptions().size(), 0);
+
+        // /tmp/functions/public/default/test-sliding-window-fn-shstbkai
+        pulsarCluster.getAnyWorker().execCmdAsync("tail", "-f", "/tmp/functions/public/default/" + functionName + "/" + functionName + "-0" + ".log");
 
         @Cleanup
         PulsarClient client = PulsarClient.builder()
