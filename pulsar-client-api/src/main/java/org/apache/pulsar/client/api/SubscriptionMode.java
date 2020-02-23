@@ -16,28 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.io.netty.server;
-
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.bytes.ByteArrayDecoder;
+package org.apache.pulsar.client.api;
 
 /**
- * Netty Channel Initializer to register decoder and handler.
+ * Types of subscription mode supported by Pulsar.
  */
-public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
+public enum SubscriptionMode {
+    // Make the subscription to be backed by a durable cursor that will retain messages and persist the current
+    // position
+    Durable,
 
-    private ChannelInboundHandlerAdapter handler;
-
-    public NettyChannelInitializer(ChannelInboundHandlerAdapter handler) {
-        this.handler = handler;
-    }
-
-    @Override
-    protected void initChannel(SocketChannel socketChannel) throws Exception {
-        socketChannel.pipeline().addLast(new ByteArrayDecoder());
-        socketChannel.pipeline().addLast(this.handler);
-    }
-
+    // Lightweight subscription mode that doesn't have a durable cursor associated
+    NonDurable
 }

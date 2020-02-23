@@ -429,7 +429,7 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 1: Access without TLS
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrl.toString()).statsInterval(0, TimeUnit.SECONDS)
-                    .build();
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
                     .subscribe();
@@ -442,7 +442,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 2: Access with TLS
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .statsInterval(0, TimeUnit.SECONDS).build();
+                    .statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -462,8 +463,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         final String subName = "newSub";
 
         conf.setAuthenticationEnabled(false);
-        conf.setBrokerServicePortTls(Optional.of(BROKER_PORT_TLS));
-        conf.setWebServicePortTls(Optional.of(BROKER_WEBSERVICE_PORT_TLS));
+        conf.setBrokerServicePortTls(Optional.of(0));
+        conf.setWebServicePortTls(Optional.of(0));
         conf.setTlsCertificateFilePath(TLS_SERVER_CERT_FILE_PATH);
         conf.setTlsKeyFilePath(TLS_SERVER_KEY_FILE_PATH);
         restartBroker();
@@ -472,7 +473,7 @@ public class BrokerServiceTest extends BrokerTestBase {
         PulsarClient pulsarClient = null;
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrl.toString()).statsInterval(0, TimeUnit.SECONDS)
-                    .build();
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
                     .subscribe();
@@ -485,7 +486,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 2: Access with TLS (Allow insecure TLS connection)
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -500,7 +502,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 3: Access with TLS (Disallow insecure TLS connection)
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .allowTlsInsecureConnection(false).statsInterval(0, TimeUnit.SECONDS).build();
+                    .allowTlsInsecureConnection(false).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -517,7 +520,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
                     .allowTlsInsecureConnection(false).tlsTrustCertsFilePath(TLS_SERVER_CERT_FILE_PATH)
-                    .statsInterval(0, TimeUnit.SECONDS).build();
+                    .statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -541,8 +545,8 @@ public class BrokerServiceTest extends BrokerTestBase {
 
         conf.setAuthenticationEnabled(true);
         conf.setAuthenticationProviders(providers);
-        conf.setBrokerServicePortTls(Optional.of(BROKER_PORT_TLS));
-        conf.setWebServicePortTls(Optional.of(BROKER_WEBSERVICE_PORT_TLS));
+        conf.setBrokerServicePortTls(Optional.of(0));
+        conf.setWebServicePortTls(Optional.of(0));
         conf.setTlsCertificateFilePath(TLS_SERVER_CERT_FILE_PATH);
         conf.setTlsKeyFilePath(TLS_SERVER_KEY_FILE_PATH);
         conf.setTlsAllowInsecureConnection(true);
@@ -557,7 +561,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 1: Access without client certificate
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -576,7 +581,8 @@ public class BrokerServiceTest extends BrokerTestBase {
             auth.configure(authParams);
 
             pulsarClient = PulsarClient.builder().authentication(auth).serviceUrl(brokerUrlTls.toString())
-                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -601,8 +607,8 @@ public class BrokerServiceTest extends BrokerTestBase {
 
         conf.setAuthenticationEnabled(true);
         conf.setAuthenticationProviders(providers);
-        conf.setBrokerServicePortTls(Optional.of(BROKER_PORT_TLS));
-        conf.setWebServicePortTls(Optional.of(BROKER_WEBSERVICE_PORT_TLS));
+        conf.setBrokerServicePortTls(Optional.of(0));
+        conf.setWebServicePortTls(Optional.of(0));
         conf.setTlsCertificateFilePath(TLS_SERVER_CERT_FILE_PATH);
         conf.setTlsKeyFilePath(TLS_SERVER_KEY_FILE_PATH);
         conf.setTlsAllowInsecureConnection(false);
@@ -617,7 +623,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 1: Access without client certificate
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -635,7 +642,8 @@ public class BrokerServiceTest extends BrokerTestBase {
             auth = new AuthenticationTls();
             auth.configure(authParams);
             pulsarClient = PulsarClient.builder().authentication(auth).serviceUrl(brokerUrlTls.toString())
-                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -660,8 +668,8 @@ public class BrokerServiceTest extends BrokerTestBase {
 
         conf.setAuthenticationEnabled(true);
         conf.setAuthenticationProviders(providers);
-        conf.setBrokerServicePortTls(Optional.of(BROKER_PORT_TLS));
-        conf.setWebServicePortTls(Optional.of(BROKER_WEBSERVICE_PORT_TLS));
+        conf.setBrokerServicePortTls(Optional.of(0));
+        conf.setWebServicePortTls(Optional.of(0));
         conf.setTlsCertificateFilePath(TLS_SERVER_CERT_FILE_PATH);
         conf.setTlsKeyFilePath(TLS_SERVER_KEY_FILE_PATH);
         conf.setTlsAllowInsecureConnection(false);
@@ -677,7 +685,8 @@ public class BrokerServiceTest extends BrokerTestBase {
         // Case 1: Access without client certificate
         try {
             pulsarClient = PulsarClient.builder().serviceUrl(brokerUrlTls.toString()).enableTls(true)
-                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -694,7 +703,8 @@ public class BrokerServiceTest extends BrokerTestBase {
             auth = new AuthenticationTls();
             auth.configure(authParams);
             pulsarClient = PulsarClient.builder().authentication(auth).serviceUrl(brokerUrlTls.toString())
-                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS).build();
+                    .enableTls(true).allowTlsInsecureConnection(true).statsInterval(0, TimeUnit.SECONDS)
+                    .operationTimeout(1000, TimeUnit.MILLISECONDS).build();
 
             @Cleanup
             Consumer<byte[]> consumer = pulsarClient.newConsumer().topic(topicName).subscriptionName(subName)
@@ -715,9 +725,12 @@ public class BrokerServiceTest extends BrokerTestBase {
     public void testLookupThrottlingForClientByClient() throws Exception {
         final String topicName = "persistent://prop/ns-abc/newTopic";
 
-        String lookupUrl = new URI("pulsar://localhost:" + BROKER_PORT).toString();
-        PulsarClient pulsarClient = PulsarClient.builder().serviceUrl(lookupUrl).statsInterval(0, TimeUnit.SECONDS)
-                .maxConcurrentLookupRequests(1).maxLookupRequests(2).build();
+        PulsarClient pulsarClient = PulsarClient.builder()
+                .serviceUrl(pulsar.getBrokerServiceUrl())
+                .statsInterval(0, TimeUnit.SECONDS)
+                .maxConcurrentLookupRequests(1)
+                .maxLookupRequests(2)
+                .build();
 
         // 2 lookup will success.
         try {

@@ -63,6 +63,7 @@ import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionInitialPosition;
+import org.apache.pulsar.client.api.SubscriptionMode;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.api.PulsarClientException.TopicDoesNotExistException;
 import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
@@ -121,8 +122,9 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
     private final int priorityLevel;
     private final SubscriptionMode subscriptionMode;
     private volatile BatchMessageIdImpl startMessageId;
-    private BatchMessageIdImpl initialStartMessageId;
-    private long startMessageRollbackDurationInSec;
+
+    private final BatchMessageIdImpl initialStartMessageId;
+    private final long startMessageRollbackDurationInSec;
 
     private volatile boolean hasReachedEndOfTopic;
 
@@ -149,39 +151,38 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
 
     private final boolean createTopicIfDoesNotExist;
 
-    enum SubscriptionMode {
-        // Make the subscription to be backed by a durable cursor that will retain messages and persist the current
-        // position
-        Durable,
 
-        // Lightweight subscription mode that doesn't have a durable cursor associated
-        NonDurable
-    }
-
-    static <T> ConsumerImpl<T> newConsumerImpl(PulsarClientImpl client, String topic, ConsumerConfigurationData<T> conf,
-            ExecutorService listenerExecutor, int partitionIndex, boolean hasParentConsumer, CompletableFuture<Consumer<T>> subscribeFuture,
-            SubscriptionMode subscriptionMode, MessageId startMessageId, Schema<T> schema, ConsumerInterceptors<T> interceptors,
-            boolean createTopicIfDoesNotExist) {
+    static <T> ConsumerImpl<T> newConsumerImpl(PulsarClientImpl client,
+                                               String topic,
+                                               ConsumerConfigurationData<T> conf,
+                                               ExecutorService listenerExecutor,
+                                               int partitionIndex,
+                                               boolean hasParentConsumer,
+                                               CompletableFuture<Consumer<T>> subscribeFuture,
+                                               MessageId startMessageId,
+                                               Schema<T> schema,
+                                               ConsumerInterceptors<T> interceptors,
+                                               boolean createTopicIfDoesNotExist) {
         if (conf.getReceiverQueueSize() == 0) {
             return new ZeroQueueConsumerImpl<>(client, topic, conf, listenerExecutor, partitionIndex, hasParentConsumer,
                     subscribeFuture,
-                    subscriptionMode, startMessageId, schema, interceptors,
+                    startMessageId, schema, interceptors,
                     createTopicIfDoesNotExist);
         } else {
             return new ConsumerImpl<>(client, topic, conf, listenerExecutor, partitionIndex, hasParentConsumer,
-                    subscribeFuture, subscriptionMode, startMessageId, 0 /* rollback time in sec to start msgId */,
+                    subscribeFuture, startMessageId, 0 /* rollback time in sec to start msgId */,
                     schema, interceptors, createTopicIfDoesNotExist);
         }
     }
 
     protected ConsumerImpl(PulsarClientImpl client, String topic, ConsumerConfigurationData<T> conf,
             ExecutorService listenerExecutor, int partitionIndex, boolean hasParentConsumer,
-            CompletableFuture<Consumer<T>> subscribeFuture, SubscriptionMode subscriptionMode, MessageId startMessageId,
+            CompletableFuture<Consumer<T>> subscribeFuture, MessageId startMessageId,
             long startMessageRollbackDurationInSec, Schema<T> schema, ConsumerInterceptors<T> interceptors,
             boolean createTopicIfDoesNotExist) {
         super(client, topic, conf, conf.getReceiverQueueSize(), listenerExecutor, subscribeFuture, schema, interceptors);
         this.consumerId = client.newConsumerId();
-        this.subscriptionMode = subscriptionMode;
+        this.subscriptionMode = conf.getSubscriptionMode();
         this.startMessageId = startMessageId != null ? new BatchMessageIdImpl((MessageIdImpl) startMessageId) : null;
         this.lastDequeuedMessage = startMessageId == null ? MessageId.earliest : startMessageId;
         this.initialStartMessageId = this.startMessageId;
@@ -301,11 +302,17 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
             }).exceptionally(e -> {
                 log.error("[{}][{}] Failed to unsubscribe: {}", topic, subscription, e.getCause().getMessage());
                 setState(State.Ready);
-                unsubscribeFuture.completeExceptionally(e.getCause());
+                unsubscribeFuture.completeExceptionally(
+                    PulsarClientException.wrap(e.getCause(),
+                        String.format("Failed to unsubscribe the subscription %s of topic %s",
+                            topicName.toString(), subscription)));
                 return null;
             });
         } else {
-            unsubscribeFuture.completeExceptionally(new PulsarClientException("Not connected to broker"));
+            unsubscribeFuture.completeExceptionally(
+                new PulsarClientException(
+                    String.format("The client is not connected to the broker when unsubscribing the " +
+                        "subscription %s of the topic %s", subscription, topicName.toString())));
         }
         return unsubscribeFuture;
     }
@@ -623,7 +630,9 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
                 // unable to create new consumer, fail operation
                 setState(State.Failed);
                 closeConsumerTasks();
-                subscribeFuture.completeExceptionally(e);
+                subscribeFuture.completeExceptionally(
+                    PulsarClientException.wrap(e, String.format("Failed to subscribe the topic %s with subscription " +
+                        "name %s when connecting to the broker", topicName.toString(), subscription)));
                 client.cleanupConsumer(this);
             } else if (e.getCause() instanceof TopicDoesNotExistException) {
                 // The topic was deleted after the consumer was created, and we're
@@ -775,7 +784,10 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
                     CompletableFuture<Message<T>> receiveFuture = pendingReceives.poll();
                     if (receiveFuture != null) {
                         receiveFuture.completeExceptionally(
-                                new PulsarClientException.AlreadyClosedException("Consumer is already closed"));
+                            new PulsarClientException.AlreadyClosedException(
+                                String.format("The consumer which subscribes the topic %s with subscription name %s " +
+                                        "was already closed when cleaning and closing the consumers",
+                                    topicName.toString(), subscription)));
                     } else {
                         break;
                     }
@@ -1442,11 +1454,15 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
     public CompletableFuture<Void> seekAsync(long timestamp) {
         if (getState() == State.Closing || getState() == State.Closed) {
             return FutureUtil
-                    .failedFuture(new PulsarClientException.AlreadyClosedException("Consumer was already closed"));
+                .failedFuture(new PulsarClientException.AlreadyClosedException(
+                    String.format("The consumer %s was already closed when seeking the subscription %s of the topic " +
+                        "%s to the timestamp %d", consumerName, subscription, topicName.toString(), timestamp)));
         }
 
         if (!isConnected()) {
-            return FutureUtil.failedFuture(new PulsarClientException("Not connected to broker"));
+            return FutureUtil.failedFuture(new PulsarClientException(
+                String.format("The client is not connected to the broker when seeking the subscription %s of the " +
+                    "topic %s to the timestamp %d", subscription, topicName.toString(), timestamp)));
         }
 
         final CompletableFuture<Void> seekFuture = new CompletableFuture<>();
@@ -1466,7 +1482,10 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
             seekFuture.complete(null);
         }).exceptionally(e -> {
             log.error("[{}][{}] Failed to reset subscription: {}", topic, subscription, e.getCause().getMessage());
-            seekFuture.completeExceptionally(e.getCause());
+            seekFuture.completeExceptionally(
+                PulsarClientException.wrap(e.getCause(),
+                    String.format("Failed to seek the subscription %s of the topic %s to the timestamp %d",
+                        subscription, topicName.toString(), timestamp)));
             return null;
         });
         return seekFuture;
@@ -1476,11 +1495,16 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
     public CompletableFuture<Void> seekAsync(MessageId messageId) {
         if (getState() == State.Closing || getState() == State.Closed) {
             return FutureUtil
-                    .failedFuture(new PulsarClientException.AlreadyClosedException("Consumer was already closed"));
+                .failedFuture(new PulsarClientException.AlreadyClosedException(
+                    String.format("The consumer %s was already closed when seeking the subscription %s of the topic " +
+                            "%s to the message %s", consumerName, subscription, topicName.toString(),
+                        messageId.toString())));
         }
 
         if (!isConnected()) {
-            return FutureUtil.failedFuture(new PulsarClientException("Not connected to broker"));
+            return FutureUtil.failedFuture(new PulsarClientException(
+                String.format("The client is not connected to the broker when seeking the subscription %s of the " +
+                    "topic %s to the message %s", subscription, topicName.toString(), messageId.toString())));
         }
 
         final CompletableFuture<Void> seekFuture = new CompletableFuture<>();
@@ -1501,7 +1525,10 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
             seekFuture.complete(null);
         }).exceptionally(e -> {
             log.error("[{}][{}] Failed to reset subscription: {}", topic, subscription, e.getCause().getMessage());
-            seekFuture.completeExceptionally(e.getCause());
+            seekFuture.completeExceptionally(
+                PulsarClientException.wrap(e.getCause(),
+                    String.format("[%s][%s] Failed to seek the subscription %s of the topic %s to the message %s",
+                        subscription, topicName.toString(), messageId.toString())));
             return null;
         });
         return seekFuture;
@@ -1562,8 +1589,10 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
     public CompletableFuture<MessageId> getLastMessageIdAsync() {
         if (getState() == State.Closing || getState() == State.Closed) {
             return FutureUtil
-                .failedFuture(new PulsarClientException.AlreadyClosedException("Consumer was already closed"));
-        }
+                .failedFuture(new PulsarClientException.AlreadyClosedException(
+                    String.format("The consumer %s was already closed when the subscription %s of the topic %s " +
+                        "getting the last message id", consumerName, subscription, topicName.toString())));
+                }
 
         AtomicLong opTimeoutMs = new AtomicLong(client.getConfiguration().getOperationTimeoutMs());
         Backoff backoff = new BackoffBuilder()
@@ -1584,9 +1613,11 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
         ClientCnx cnx = cnx();
         if (isConnected() && cnx != null) {
             if (!Commands.peerSupportsGetLastMessageId(cnx.getRemoteEndpointProtocolVersion())) {
-                future.completeExceptionally(new PulsarClientException
-                    .NotSupportedException("GetLastMessageId Not supported for ProtocolVersion: " +
-                    cnx.getRemoteEndpointProtocolVersion()));
+                future.completeExceptionally(
+                    new PulsarClientException.NotSupportedException(
+                        String.format("The command `GetLastMessageId` is not supported for the protocol version %d. " +
+                                "The consumer is %s, topic %s, subscription %s", cnx.getRemoteEndpointProtocolVersion(),
+                            consumerName, topicName.toString(), subscription)));
             }
 
             long requestId = client.newRequestId();
@@ -1600,14 +1631,19 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
                     result.getEntryId(), result.getPartition()));
             }).exceptionally(e -> {
                 log.error("[{}][{}] Failed getLastMessageId command", topic, subscription);
-                future.completeExceptionally(e.getCause());
+                future.completeExceptionally(
+                    PulsarClientException.wrap(e.getCause(),
+                        String.format("The subscription %s of the topic %s gets the last message id was failed",
+                            subscription, topicName.toString())));
                 return null;
             });
         } else {
             long nextDelay = Math.min(backoff.next(), remainingTime.get());
             if (nextDelay <= 0) {
-                future.completeExceptionally(new PulsarClientException
-                    .TimeoutException("Could not getLastMessageId within configured timeout."));
+                future.completeExceptionally(
+                    new PulsarClientException.TimeoutException(
+                        String.format("The subscription %s of the topic %s could not get the last message id " +
+                            "withing configured timeout", subscription, topicName.toString())));
                 return;
             }
 

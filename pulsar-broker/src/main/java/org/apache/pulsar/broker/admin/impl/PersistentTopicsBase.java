@@ -116,7 +116,6 @@ import org.slf4j.LoggerFactory;
 public class PersistentTopicsBase extends AdminResource {
     private static final Logger log = LoggerFactory.getLogger(PersistentTopicsBase.class);
 
-    public static final int PARTITIONED_TOPIC_WAIT_SYNC_TIME_MS = 1000;
     private static final int OFFLINE_TOPIC_STAT_TTL_MINS = 10;
     private static final String DEPRECATED_CLIENT_VERSION_PREFIX = "Pulsar-CPP-v";
     private static final Version LEAST_SUPPORTED_CLIENT_VERSION_PREFIX = Version.forIntegers(1, 21);
@@ -265,13 +264,7 @@ public class PersistentTopicsBase extends AdminResource {
         }
     }
 
-    protected void internalGrantPermissionsOnTopic(String role, Set<AuthAction> actions) {
-        // This operation should be reading from zookeeper and it should be allowed without having admin privileges
-        validateAdminAccessForTenant(namespaceName.getTenant());
-        validatePoliciesReadOnlyAccess();
-
-        String topicUri = topicName.toString();
-
+    private void grantPermissions(String topicUri, String role, Set<AuthAction> actions) {
         try {
             Stat nodeStat = new Stat();
             byte[] content = globalZk().getData(path(POLICIES, namespaceName.toString()), null, nodeStat);
@@ -301,11 +294,26 @@ public class PersistentTopicsBase extends AdminResource {
             log.warn("[{}] Failed to grant permissions on topic {}: concurrent modification", clientAppId(),
                     topicUri);
             throw new RestException(Status.CONFLICT, "Concurrent modification");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("[{}] Failed to grant permissions for topic {}", clientAppId(), topicUri, e);
             throw new RestException(e);
         }
+    }
+
+    protected void internalGrantPermissionsOnTopic(String role, Set<AuthAction> actions) {
+        // This operation should be reading from zookeeper and it should be allowed without having admin privileges
+        validateAdminAccessForTenant(namespaceName.getTenant());
+        validatePoliciesReadOnlyAccess();
+
+        PartitionedTopicMetadata meta = getPartitionedTopicMetadata(topicName, true, false);
+        int numPartitions = meta.partitions;
+        if (numPartitions > 0) {
+            for (int i = 0; i < numPartitions; i++) {
+                TopicName topicNamePartition = topicName.getPartition(i);
+                grantPermissions(topicNamePartition.toString(), role, actions);
+            }
+        }
+        grantPermissions(topicName.toString(), role, actions);
     }
 
     protected void internalDeleteTopicForcefully(boolean authoritative) {
@@ -319,12 +327,7 @@ public class PersistentTopicsBase extends AdminResource {
         }
     }
 
-    protected void internalRevokePermissionsOnTopic(String role) {
-        // This operation should be reading from zookeeper and it should be allowed without having admin privileges
-        validateAdminAccessForTenant(namespaceName.getTenant());
-        validatePoliciesReadOnlyAccess();
-
-        String topicUri = topicName.toString();
+    private void revokePermissions(String topicUri, String role) {
         Stat nodeStat = new Stat();
         Policies policies;
 
@@ -337,10 +340,9 @@ public class PersistentTopicsBase extends AdminResource {
             throw new RestException(Status.NOT_FOUND, "Namespace does not exist");
         } catch (KeeperException.BadVersionException e) {
             log.warn("[{}] Failed to revoke permissions on topic {}: concurrent modification", clientAppId(),
-                topicUri);
+                    topicUri);
             throw new RestException(Status.CONFLICT, "Concurrent modification");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("[{}] Failed to revoke permissions for topic {}", clientAppId(), topicUri, e);
             throw new RestException(e);
         }
@@ -369,6 +371,23 @@ public class PersistentTopicsBase extends AdminResource {
             log.error("[{}] Failed to revoke permissions for topic {}", clientAppId(), topicUri, e);
             throw new RestException(e);
         }
+
+    }
+
+    protected void internalRevokePermissionsOnTopic(String role) {
+        // This operation should be reading from zookeeper and it should be allowed without having admin privileges
+        validateAdminAccessForTenant(namespaceName.getTenant());
+        validatePoliciesReadOnlyAccess();
+
+        PartitionedTopicMetadata meta = getPartitionedTopicMetadata(topicName, true, false);
+        int numPartitions = meta.partitions;
+        if (numPartitions > 0) {
+            for (int i = 0; i < numPartitions; i++) {
+                TopicName topicNamePartition = topicName.getPartition(i);
+                revokePermissions(topicNamePartition.toString(), role);
+            }
+        }
+        revokePermissions(topicName.toString(), role);
     }
 
     protected void internalCreatePartitionedTopic(int numPartitions) {
@@ -394,8 +413,9 @@ public class PersistentTopicsBase extends AdminResource {
             String path = ZkAdminPaths.partitionedTopicPath(topicName);
             byte[] data = jsonMapper().writeValueAsBytes(new PartitionedTopicMetadata(numPartitions));
             zkCreateOptimistic(path, data);
-            // we wait for the data to be synced in all quorums and the observers
-            Thread.sleep(PARTITIONED_TOPIC_WAIT_SYNC_TIME_MS);
+            tryCreatePartitionsAsync(numPartitions);
+            // Sync data to all quorums and the observers
+            zkSync(path);
             log.info("[{}] Successfully created partitioned topic {}", clientAppId(), topicName);
         } catch (KeeperException.NodeExistsException e) {
             log.warn("[{}] Failed to create already existing partitioned topic {}", clientAppId(), topicName);
@@ -513,6 +533,13 @@ public class PersistentTopicsBase extends AdminResource {
         }
     }
 
+    protected void internalCreateMissedPartitions() {
+        PartitionedTopicMetadata metadata = getPartitionedTopicMetadata(topicName, false, false);
+        if (metadata != null) {
+            tryCreatePartitionsAsync(metadata.partitions);
+        }
+    }
+
     private CompletableFuture<Void> updatePartitionInOtherCluster(int numPartitions, Set<String> clusters) {
         List<CompletableFuture<Void>> results = new ArrayList<>(clusters.size() -1);
         clusters.forEach(cluster -> {
@@ -600,8 +627,8 @@ public class PersistentTopicsBase extends AdminResource {
             try {
                 globalZk().delete(path, -1);
                 globalZkCache().invalidate(path);
-                // we wait for the data to be synced in all quorums and the observers
-                Thread.sleep(PARTITIONED_TOPIC_WAIT_SYNC_TIME_MS);
+                // Sync data to all quorums and the observers
+                zkSync(path);
                 log.info("[{}] Deleted partitioned topic {}", clientAppId(), topicName);
                 asyncResponse.resume(Response.noContent().build());
                 return;
@@ -1819,24 +1846,28 @@ public class PersistentTopicsBase extends AdminResource {
             }
 
             admin.topics().getStatsAsync(topicName.getPartition(0).toString()).thenAccept(stats -> {
-                stats.subscriptions.keySet().forEach(subscription -> {
-                    List<CompletableFuture<Void>> subscriptionFutures = new ArrayList<>();
-                    for (int i = partitionMetadata.partitions; i < numPartitions; i++) {
-                        final String topicNamePartition = topicName.getPartition(i).toString();
+                if (stats.subscriptions.size() == 0) {
+                    result.complete(null);
+                } else {
+                    stats.subscriptions.keySet().forEach(subscription -> {
+                        List<CompletableFuture<Void>> subscriptionFutures = new ArrayList<>();
+                        for (int i = partitionMetadata.partitions; i < numPartitions; i++) {
+                            final String topicNamePartition = topicName.getPartition(i).toString();
 
-                        subscriptionFutures.add(admin.topics().createSubscriptionAsync(topicNamePartition,
-                                subscription, MessageId.latest));
-                    }
+                            subscriptionFutures.add(admin.topics().createSubscriptionAsync(topicNamePartition,
+                                    subscription, MessageId.latest));
+                        }
 
-                    FutureUtil.waitForAll(subscriptionFutures).thenRun(() -> {
-                        log.info("[{}] Successfully created new partitions {}", clientAppId(), topicName);
-                        result.complete(null);
-                    }).exceptionally(ex -> {
-                        log.warn("[{}] Failed to create subscriptions on new partitions for {}", clientAppId(), topicName, ex);
-                        result.completeExceptionally(ex);
-                        return null;
+                        FutureUtil.waitForAll(subscriptionFutures).thenRun(() -> {
+                            log.info("[{}] Successfully created new partitions {}", clientAppId(), topicName);
+                            result.complete(null);
+                        }).exceptionally(ex -> {
+                            log.warn("[{}] Failed to create subscriptions on new partitions for {}", clientAppId(), topicName, ex);
+                            result.completeExceptionally(ex);
+                            return null;
+                        });
                     });
-                });
+                }
             }).exceptionally(ex -> {
                 if (ex.getCause() instanceof PulsarAdminException.NotFoundException) {
                     // The first partition doesn't exist, so there are currently to subscriptions to recreate
