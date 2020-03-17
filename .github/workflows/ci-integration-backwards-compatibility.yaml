@@ -27,7 +27,7 @@ jobs:
 
   backwards-compatibility:
     name:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
@@ -51,54 +51,19 @@ jobs:
       - name: get space size
         run: df -h
 
-      - name: get file size
-        run: du -sh
-
       - name: clean disk
         run: |
           sudo swapoff -a
           sudo rm -f /swapfile
           sudo apt clean
+          docker rmi -f $(docker image ls -aq)
           df -h
-
-      - name: get space size
-        run: df -h
 
       - name: run install by skip tests
         run: mvn clean install -DskipTests
 
-      - name: get space size
-        run: df -h
-
-      - name: get file size
-        run: du -sh
-
-      - name: get directory size
-        run: ls /
-
-      - name: get file size
-        run: sudo du -sh /
-
       - name: build artifacts and docker image
         run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
-
-      - name: get docker size
-        run: df -h
-
-      - name: get docker size
-        run: docker images
-
-      - name: get file size
-        run: du -sh /
-
-      - name: clean docker container
-        run: docker system prune -f
-
-      - name: remove docker node image
-        run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
-
-      - name: remove docker builder and microsoft image
-        run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
 
       - name: get docker size
         run: df -h
