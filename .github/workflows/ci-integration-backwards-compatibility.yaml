@@ -55,7 +55,13 @@ jobs:
         run: df -h
 
       - name: get file size
-        run: du -sh /
+        run: du -sh
+
+      - name: get directory size
+        run: ls /
+
+      - name: get file size
+        run: sudo du -sh /
 
       - name: build artifacts and docker image
         run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
