@@ -54,6 +54,17 @@ jobs:
       - name: get file size
         run: du -sh
 
+      - name: clean disk
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+          
+      - name: get space size
+        run: df -h
+
       - name: run install by skip tests
         run: mvn clean install -DskipTests
 
