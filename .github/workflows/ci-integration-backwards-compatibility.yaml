@@ -57,6 +57,14 @@ jobs:
         if: steps.docs.outputs.changed_only == 'no'
         run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
 
+      - name: get docker size
+        if: steps.docs.outputs.changed_only == 'no'
+        run: df -h
+
+      - name: get docker size
+        if: steps.docs.outputs.changed_only == 'no'
+        run: docker images
+
       - name: clean docker container
         if: steps.docs.outputs.changed_only == 'no'
         run: docker system prune -f
@@ -68,6 +76,14 @@ jobs:
       - name: remove docker builder and microsoft image
         if: steps.docs.outputs.changed_only == 'no'
         run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
+
+      - name: get docker size
+        if: steps.docs.outputs.changed_only == 'no'
+        run: df -h
+
+      - name: get docker size
+        if: steps.docs.outputs.changed_only == 'no'
+        run: docker images
 
       - name: run integration tests
         if: steps.docs.outputs.changed_only == 'no'
