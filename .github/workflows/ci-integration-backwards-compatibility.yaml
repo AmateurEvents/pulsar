@@ -51,6 +51,12 @@ jobs:
       - name: run install by skip tests
         run: mvn clean install -DskipTests
 
+      - name: get space size
+        run: df -h
+
+      - name: get file size
+        run: du -sh /
+
       - name: build artifacts and docker image
         run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
 
@@ -59,6 +65,9 @@ jobs:
 
       - name: get docker size
         run: docker images
+
+      - name: get file size
+        run: du -sh /
 
       - name: clean docker container
         run: docker system prune -f
