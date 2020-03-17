@@ -59,9 +59,9 @@ jobs:
           sudo swapoff -a
           sudo rm -f /swapfile
           sudo apt clean
-          docker rmi $(docker image ls -aq)
+          docker rmi -f $(docker image ls -aq)
           df -h
-          
+
       - name: get space size
         run: df -h
 
