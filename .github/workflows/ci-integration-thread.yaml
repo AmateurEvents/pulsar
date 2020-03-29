@@ -17,7 +17,7 @@
 # under the License.
 #
 
-name: CI - Integration - Thread
+name: CI - Integration - Process
 on:
   pull_request:
     branches:
@@ -25,7 +25,7 @@ on:
 
 jobs:
 
-  thread:
+  process:
     name:
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -58,34 +58,22 @@ jobs:
           docker rmi $(docker images -q) -f
           df -h
 
-#      - name: run install by skip tests
-#        if: steps.docs.outputs.changed_only == 'no'
-#        run: mvn clean install -DskipTests
-
-      - name: clean docker container
+      - name: run install by skip tests
         if: steps.docs.outputs.changed_only == 'no'
-        run: docker system prune -f
+        run: mvn clean install -DskipTests
 
       - name: build artifacts and docker image
         if: steps.docs.outputs.changed_only == 'no'
-        run: mvn clean -B install -am -Pdocker -DskipTests
-
-      - name: remove docker node image
-        if: steps.docs.outputs.changed_only == 'no'
-        run: docker rmi -f node:10 && docker rmi -f node:12 && docker rmi -f buildpack-deps:stretch
-
-      - name: remove docker builder and microsoft image
-        if: steps.docs.outputs.changed_only == 'no'
-        run: docker rmi -f jekyll/builder:latest && docker rmi -f mcr.microsoft.com/azure-pipelines/node8-typescript:latest
+        run: mvn -B -f tests/docker-images/pom.xml install -am -Pdocker -DskipTests
 
       - name: run integration function
         if: steps.docs.outputs.changed_only == 'no'
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-thread.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
+        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=function
 
       - name: run integration source
         if: steps.docs.outputs.changed_only == 'no'
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-thread.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=source
+        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=source
 
       - name: run integraion sink
         if: steps.docs.outputs.changed_only == 'no'
-        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-thread.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=sink
+        run: mvn -B -f tests/pom.xml test -DintegrationTestSuiteFile=pulsar-process.xml -DintegrationTests -DredirectTestOutputToFile=false -Dgroups=sink

@@ -107,7 +107,7 @@ public class AvroReader<T> implements SchemaReader<T> {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                log.error("AvroReader close inputStream close error", e.getMessage());
+                log.error("AvroReader close inputStream close error", e);
             }
         }
     }
