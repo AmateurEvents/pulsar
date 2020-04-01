@@ -2201,6 +2201,11 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
             }
         });
 
+        PulsarAdmin admin = PulsarAdmin.builder().serviceHttpUrl(pulsarCluster.getHttpServiceUrl()).build();
+        SchemaInfo info = admin.schemas().getSchemaInfo(inputTopic);
+        log.info("schema info: {}, name: {}, schema: {}", info.getSchema(),
+                info.getName(), new String(info.getSchema()));
+
         submitFunction(
                 Runtime.JAVA,
                 inputTopic,
