@@ -990,7 +990,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         int NUM_OF_MESSAGES = 100;
         int windowLengthCount = 10;
         int slidingIntervalCount = 5;
-        String functionName = "test-" + type + "-window-fn-" + randomName(8);
+        String functionName = "test-" + type + "-window-fn-xyz";
 
         String inputTopicName = "test-" + type + "-count-window-" + functionRuntimeType + "-input-" + randomName(8);
         String outputTopicName = "test-" + type + "-count-window-" + functionRuntimeType + "-output-" + randomName(8);
