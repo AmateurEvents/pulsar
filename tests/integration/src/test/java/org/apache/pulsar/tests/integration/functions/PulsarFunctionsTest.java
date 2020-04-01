@@ -1090,7 +1090,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         getFunctionInfoNotFound(functionName);
     }
 
-    @Test(enabled = false, groups="function")
+    @Test(groups="slidingFunction")
     public void testSlidingCountWindowTest() throws Exception {
         String[] EXPECTED_RESULTS = {
                 "0,1,2,3,4",
@@ -1118,7 +1118,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         testWindowFunction("sliding", EXPECTED_RESULTS);
     }
 
-    @Test(enabled = false, groups = "function")
+    @Test(groups = "slidingFunction")
     public void testTumblingCountWindowTest() throws Exception {
         String[] EXPECTED_RESULTS = {
                 "0,1,2,3,4,5,6,7,8,9",
@@ -2145,7 +2145,7 @@ public abstract class PulsarFunctionsTest extends PulsarFunctionsTestBase {
         }
     }
 
-    @Test(groups = "function")
+    @Test(groups = "avroSchema")
     public void testAvroSchemaFunction() throws Exception {
         log.info("testAvroSchemaFunction start ...");
         final String inputTopic = "test-avroschema-input-" + randomName(8);
