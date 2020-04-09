@@ -36,6 +36,7 @@ public class Backoff {
     private final Clock clock;
     private long next;
     private long mandatoryStop;
+    
 
     private long firstBackoffTimeInMillis;
     private boolean mandatoryStopMade = false;
