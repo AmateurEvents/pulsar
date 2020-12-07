@@ -37,6 +37,7 @@ import io.netty.util.Recycler.Handle;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -238,7 +239,7 @@ public class KinesisSink extends AbstractAwsConnector implements Sink<byte[]> {
 
     public static ByteBuffer createKinesisMessage(MessageFormat msgFormat, Record<byte[]> record) {
         if (MessageFormat.FULL_MESSAGE_IN_JSON.equals(msgFormat)) {
-            return ByteBuffer.wrap(Utils.serializeRecordToJson(record).getBytes());
+            return ByteBuffer.wrap(Utils.serializeRecordToJson(record).getBytes(StandardCharsets.UTF_8));
         } else if (MessageFormat.FULL_MESSAGE_IN_FB.equals(msgFormat)) {
             return Utils.serializeRecordToFlatBuffer(record);
         } else {

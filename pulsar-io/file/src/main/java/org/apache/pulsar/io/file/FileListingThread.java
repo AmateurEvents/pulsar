@@ -18,6 +18,8 @@
  */
 package org.apache.pulsar.io.file;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
@@ -38,6 +40,7 @@ import java.util.regex.Pattern;
  * files that meet the provided filtering criteria, and publishes
  * them to a work queue for processing by the FileConsumerThreads.
  */
+@Slf4j
 public class FileListingThread extends Thread {
 
     private final AtomicLong queueLastUpdated = new AtomicLong(0L);
@@ -84,7 +87,9 @@ public class FileListingThread extends Thread {
 
                         for (File f: listing) {
                             if (!workQueue.contains(f)) {
-                                workQueue.offer(f);
+                                if(!workQueue.offer(f)) {
+                                    log.error("Add file {} to work queue failed.", f.getName());
+                                }
                             }
                         }
                         queueLastUpdated.set(System.currentTimeMillis());

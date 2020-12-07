@@ -21,6 +21,7 @@ package org.apache.pulsar.io.file;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
@@ -102,7 +103,7 @@ public class FileConsumerThread extends Thread {
     }
 
     private void process(File srcFile, int lineNumber, String line) {
-        source.consume(new FileRecord(srcFile, lineNumber, line.getBytes()));
+        source.consume(new FileRecord(srcFile, lineNumber, line.getBytes(StandardCharsets.UTF_8)));
     }
 
 }

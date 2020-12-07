@@ -70,7 +70,7 @@ public class StreamsRecord implements Record<byte[]> {
             } catch (CharacterCodingException e) {
                // Ignore
             }
-            this.value = (s != null) ? s.getBytes() : null;
+            this.value = (s != null) ? s.getBytes(StandardCharsets.UTF_8) : null;
         } else {
             // Who knows?
             this.value = null;

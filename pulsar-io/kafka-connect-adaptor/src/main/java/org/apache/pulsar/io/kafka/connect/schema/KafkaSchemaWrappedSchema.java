@@ -37,7 +37,8 @@ import org.apache.pulsar.common.schema.SchemaType;
 @Slf4j
 public class KafkaSchemaWrappedSchema implements Schema<byte[]>, Serializable {
 
-    private SchemaInfo schemaInfo = null;
+    private static final long serialVersionUID = -251256463593565596L;
+    private transient SchemaInfo schemaInfo = null;
 
     public KafkaSchemaWrappedSchema(org.apache.pulsar.kafka.shade.avro.Schema schema,
                                     Converter converter) {

@@ -60,7 +60,7 @@ public class KinesisRecord implements Record<byte[]> {
             } catch (CharacterCodingException e) {
                // Ignore 
             }
-            this.value = (s != null) ? s.getBytes() : null;
+            this.value = (s != null) ? s.getBytes(StandardCharsets.UTF_8) : null;
         } else if (encType == EncryptionType.KMS) {
             // use the raw encrypted value, let them handle it downstream
             // TODO: support decoding KMS data here... should be fairly simple

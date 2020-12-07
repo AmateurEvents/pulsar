@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -68,7 +69,7 @@ public class ZipFiles {
           throw new UncheckedIOException(e);
         }
         // Reader decoder = new InputStreamReader(gzipStream, Charset.defaultCharset());
-        BufferedReader reader = new BufferedReader(new InputStreamReader(zipStream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
         return reader.lines().onClose(() -> closeSafely(reader));
     }
 

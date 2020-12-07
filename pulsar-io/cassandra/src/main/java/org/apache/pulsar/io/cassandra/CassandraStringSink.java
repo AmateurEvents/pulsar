@@ -24,6 +24,8 @@ import org.apache.pulsar.io.core.KeyValue;
 import org.apache.pulsar.io.core.annotations.Connector;
 import org.apache.pulsar.io.core.annotations.IOType;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Cassandra sink that treats incoming messages on the input topic as Strings
  * and write identical key/value pairs.
@@ -36,7 +38,7 @@ import org.apache.pulsar.io.core.annotations.IOType;
 public class CassandraStringSink extends CassandraAbstractSink<String, String> {
     @Override
     public KeyValue<String, String> extractKeyValue(Record<byte[]> record) {
-        String key = record.getKey().orElseGet(() -> new String(record.getValue()));
-        return new KeyValue<>(key, new String(record.getValue()));
+        String key = record.getKey().orElseGet(() -> new String(record.getValue(), StandardCharsets.UTF_8));
+        return new KeyValue<>(key, new String(record.getValue(), StandardCharsets.UTF_8));
     }
 }

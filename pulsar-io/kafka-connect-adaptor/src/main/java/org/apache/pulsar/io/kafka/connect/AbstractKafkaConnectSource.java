@@ -133,7 +133,7 @@ public abstract class AbstractKafkaConnectSource<T> implements Source<T> {
                 flushFuture = new CompletableFuture<>();
                 List<SourceRecord> recordList = sourceTask.poll();
                 if (recordList == null || recordList.isEmpty()) {
-                    Thread.sleep(1000);
+                    flushFuture.wait();
                     continue;
                 }
                 outstandingRecords.addAndGet(recordList.size());

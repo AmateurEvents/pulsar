@@ -24,7 +24,7 @@ import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import org.apache.pulsar.io.core.annotations.Connector;
 import org.apache.pulsar.io.core.annotations.IOType;
-
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -45,7 +45,7 @@ public class CanalByteSource extends CanalAbstractSource<byte[]> {
     @Override
     public byte[] extractValue(List<FlatMessage> flatMessages) {
         String messages = JSON.toJSONString(flatMessages, SerializerFeature.WriteMapNullValue);
-        return messages.getBytes();
+        return messages.getBytes(StandardCharsets.UTF_8);
     }
 
 }

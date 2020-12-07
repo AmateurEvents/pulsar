@@ -20,8 +20,11 @@ package org.apache.pulsar.io.flume.node;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -183,9 +186,9 @@ public class PropertiesFileConfigurationProvider extends
 
     @Override
     public FlumeConfiguration getFlumeConfiguration() {
-        BufferedReader reader = null;
+        InputStreamReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(file));
+            reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
             String resolverClassName = System.getProperty("propertiesImplementation",
                     DEFAULT_PROPERTIES_IMPLEMENTATION);
             Class<? extends Properties> propsclass = Class.forName(resolverClassName)

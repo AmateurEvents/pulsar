@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import lombok.Data;
@@ -86,7 +87,7 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<Object> 
             ByteBuf content = httpContent.content();
             if (content.isReadable()) {
                 nettySource.consume(new NettyHttpRecord(Optional.ofNullable(""),
-                        content.toString(CharsetUtil.UTF_8).getBytes()));
+                        content.toString(CharsetUtil.UTF_8).getBytes(StandardCharsets.UTF_8)));
             }
 
             if (msg instanceof LastHttpContent) {

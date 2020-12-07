@@ -21,6 +21,7 @@ package org.apache.pulsar.io.hbase;
 import com.google.common.base.Preconditions;
 import java.io.Serializable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.apache.pulsar.io.core.annotations.FieldDoc;
 
@@ -66,4 +67,5 @@ public class HbaseAbstractConfig implements Serializable {
         Preconditions.checkNotNull(zookeeperZnodeParent, "zookeeperZnodeParent property not set.");
         Preconditions.checkNotNull(tableName, "hbase tableName property not set.");
     }
+
 }

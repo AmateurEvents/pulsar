@@ -31,6 +31,7 @@ import java.io.*;
 import org.apache.pulsar.io.core.PushSource;
 import org.apache.pulsar.io.core.SourceContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -54,7 +55,7 @@ public abstract class AbstractSource<V> extends PushSource<V> {
         FlumeConfig flumeConfig = FlumeConfig.load(config);
 
         FlumeConnector flumeConnector = new FlumeConnector();
-        flumeConnector.StartConnector(flumeConfig);
+        flumeConnector.startConnector(flumeConfig);
 
         this.start();
 
@@ -97,7 +98,7 @@ public abstract class AbstractSource<V> extends PushSource<V> {
                         out.writeObject(message.get("body"));
                         out.flush();
                         byte[] m = bos.toByteArray();
-                        String m1 = new String(m);
+                        String m1 = new String(m, StandardCharsets.UTF_8);
                         bos.close();
                         FlumeRecord flumeRecord = new FlumeRecord<>();
                         flumeRecord.setRecord(extractValue(m1));

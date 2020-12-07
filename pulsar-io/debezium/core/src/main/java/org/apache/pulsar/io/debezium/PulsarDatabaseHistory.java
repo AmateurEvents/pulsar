@@ -69,7 +69,7 @@ public final class PulsarDatabaseHistory extends AbstractDatabaseHistory {
         .withDescription("Pulsar service url")
         .withValidation(Field::isRequired);
 
-    public static Field.Set ALL_FIELDS = Field.setOf(
+    public static final Field.Set ALL_FIELDS = Field.setOf(
         TOPIC,
         SERVICE_URL,
         DatabaseHistory.NAME);

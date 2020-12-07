@@ -56,7 +56,7 @@ public abstract class AbstractSink<T> implements Sink<T> {
         FlumeConfig flumeConfig = FlumeConfig.load(config);
 
         flumeConnector = new FlumeConnector();
-        flumeConnector.StartConnector(flumeConfig);
+        flumeConnector.startConnector(flumeConfig);
     }
 
     @Override

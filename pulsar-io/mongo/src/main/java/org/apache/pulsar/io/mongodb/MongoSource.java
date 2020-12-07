@@ -129,11 +129,11 @@ public class MongoSource extends PushSource<byte[]> {
                     recordValue.put("fullDocument", doc.getFullDocument());
                     recordValue.put("ns", doc.getNamespace());
                     recordValue.put("operation", doc.getOperationType());
-
-                    consume(new DocRecord(
-                            Optional.of(doc.getDocumentKey().toJson()),
-                            mapper.writeValueAsString(recordValue).getBytes(StandardCharsets.UTF_8)));
-
+                    if (doc.getDocumentKey() != null) {
+                        consume(new DocRecord(
+                                Optional.of(doc.getDocumentKey().toJson()),
+                                mapper.writeValueAsString(recordValue).getBytes(StandardCharsets.UTF_8)));
+                    }
                 } catch (JsonProcessingException e) {
                     log.error("Processing doc from mongo", e);
                 }

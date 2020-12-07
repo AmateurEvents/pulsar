@@ -27,6 +27,7 @@ import org.apache.flume.source.AbstractPollableSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -82,7 +83,7 @@ public class SourceOfFlume extends AbstractPollableSource implements BatchSizeSu
                 while (blockingQueue != null && !blockingQueue.isEmpty()) {
                     Object message = blockingQueue.take();
                     eventBody = message.toString();
-                    event = EventBuilder.withBody(eventBody.getBytes());
+                    event = EventBuilder.withBody(eventBody.getBytes(StandardCharsets.UTF_8));
                     eventList.add(event);
                 }
             }

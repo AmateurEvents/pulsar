@@ -8,7 +8,7 @@ public final class CompressionType {
   public static final byte LZ4 = 1;
   public static final byte ZLIB = 2;
 
-  public static final String[] names = { "NONE", "LZ4", "ZLIB", };
+  private static final String[] names = { "NONE", "LZ4", "ZLIB", };
 
   public static String name(int e) { return names[e]; }
 }

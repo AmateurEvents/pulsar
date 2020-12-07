@@ -28,10 +28,12 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.ByteString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Simple class for mysql binlog message to parse.
  */
+@Slf4j
 public class MessageUtils {
 
     public static Map<String, String> genColumn(CanalEntry.Column column) {
@@ -63,7 +65,7 @@ public class MessageUtils {
      * @param message
      * @return FlatMessage List
      */
-    public static List<FlatMessage> messageConverter(Message message) {
+    public static List<FlatMessage> messageConverter(Message message) throws Exception {
         try {
             if (message == null) {
                 return null;
@@ -125,7 +127,6 @@ public class MessageUtils {
                         } else {
                             columns = rowData.getAfterColumnsList();
                         }
-                        columns.size();
                         for (CanalEntry.Column column : columns) {
                             Map<String, String> row = genColumn(column);
                             if (column.getUpdated()) {
@@ -153,8 +154,12 @@ public class MessageUtils {
                 }
             }
             return flatMessages;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            log.error("[{}] conversion failed, runtime exception message: {}", message, e);
             throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.error("[{}] conversion failed, exception message: {}", message, e);
+            throw new Exception(e);
         }
     }
 

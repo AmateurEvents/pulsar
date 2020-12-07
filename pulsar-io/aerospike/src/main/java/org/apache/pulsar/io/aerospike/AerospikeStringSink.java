@@ -22,6 +22,8 @@ package org.apache.pulsar.io.aerospike;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.core.KeyValue;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Aerospike sink that treats incoming messages on the input topic as Strings
  * and write identical key/value pairs.
@@ -29,7 +31,7 @@ import org.apache.pulsar.io.core.KeyValue;
 public class AerospikeStringSink extends AerospikeAbstractSink<String, String> {
     @Override
     public KeyValue<String, String> extractKeyValue(Record<byte[]> record) {
-        String key = record.getKey().orElseGet(() -> new String(record.getValue()));
-        return new KeyValue<>(key, new String(record.getValue()));
+        String key = record.getKey().orElseGet(() -> new String(record.getValue(), StandardCharsets.UTF_8));
+        return new KeyValue<>(key, new String(record.getValue(), StandardCharsets.UTF_8));
     }
 }

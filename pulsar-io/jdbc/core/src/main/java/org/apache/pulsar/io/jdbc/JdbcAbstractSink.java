@@ -137,9 +137,7 @@ public abstract class JdbcAbstractSink<T> implements Sink<T> {
             connection.commit();
         }
         flushExecutor.shutdown();
-        if (connection != null) {
-            connection.close();
-        }
+        connection.close();
         log.info("Closed jdbc connection: {}", jdbcUrl);
     }
 
